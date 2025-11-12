@@ -1,0 +1,47 @@
+/* Footer styles for app download encouragement */
+.footer {
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid #f3f4f8;
+  padding: 24px 0 16px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 36px;
+}
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.footer-text {
+  color: #222;
+  font-size: 1.08rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.store-links {
+  display: flex;
+  gap: 16px;
+}
+.store-btn {
+  display: inline-block;
+}
+.store-icon {
+  height: 44px;
+  width: auto;
+  transition: transform 0.12s;
+}
+.store-btn:hover .store-icon,
+.store-btn:focus .store-icon {
+  transform: scale(1.07);
+}
+@media (max-width: 600px) {
+  .footer-content {
+    gap: 8px;
+  }
+  .store-icon {
+    height: 36px;
+  }
+}

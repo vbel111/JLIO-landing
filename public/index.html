@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Jlio — Home</title>
+	<link rel="icon" type="image/png" href="assets/images/favicon.png">
+	<link rel="stylesheet" href="assets/styles.css">
+	<link rel="stylesheet" href="assets/landing.css">
+	<!-- lottie removed — using static homepage image in hero -->
+	<link rel="stylesheet" href="assets/footer.css">
+</head>
+<body>
+	<!-- Top bar only; the rest of the page will be rebuilt -->
+		<header class="top-bar">
+		<div class="nav-wrap">
+			<div class="left">
+				<a href="index.html" aria-label="home"><img src="assets/images/logo.png" alt="Jlio" class="top-logo top-logo--large" /></a>
+			</div>
+
+				<button id="nav-toggle" aria-controls="primary-nav" aria-expanded="false" class="icon-btn" aria-label="Open menu">☰</button>
+				<nav id="primary-nav" class="nav-center" role="navigation" aria-label="Primary">
+					<a class="top-nav-btn" href="safety.html">Safety</a>
+					<a class="top-nav-btn" href="#features">Features</a>
+					<a class="top-nav-btn" href="#contact">Contact</a>
+				</nav>
+
+			<div class="right">
+				<button class="icon-btn refresh-btn" title="Refresh" aria-label="Refresh" onclick="window.location.reload()">🔄</button>
+			</div>
+		</div>
+	</header>
+
+	<!-- Starter content area (empty) -->
+	<main class="site-container landing" style="padding:24px;">
+
+		<!-- HERO -->
+		<section class="landing-hero">
+			<div class="hero-copy">
+				<h1>Real Feelings. No Names. Just Let It Out.</h1>
+				<p>JLIO is your safe space to express, share, and connect — completely anonymously. Answer questions, post stories, and pair up with others using Jlios.</p>
+				<div class="hero-ctas">
+					<a class="btn btn--primary" href="#download">Download JLIO</a>
+					<a class="btn btn--store" href="#download"><img src="assets/images/play-store-badge.png" alt="Get it on Google Play" style="height:36px;"></a>
+					<a class="btn btn--store" href="#download"><img src="assets/images/app-store-badge.png" alt="Download on the App Store" style="height:36px;"></a>
+				</div>
+			</div>
+				<div class="hero-mock">
+							<div class="mock-frame">
+								<div class="phone-stack" aria-hidden="true">
+									<div class="device-phone p1"><div class="device-screen"><img src="assets/images/features/ProfilePage.jpg" alt="Profile screen"></div></div>
+									<div class="device-phone p2"><div class="device-screen"><img src="assets/images/features/HomePage.jpg" alt="Home screen"></div></div>
+									<div class="device-phone p3"><div class="device-screen"><img src="assets/images/features/QA-Answer.png" alt="Q&A answer screen"></div></div>
+								</div>
+							</div>
+						</div>
+		</section>
+		<!-- floating JLIO branding -->
+		<div class="hero-coins" aria-hidden="true">
+			<div class="coin coin-1">💭</div>
+			<div class="coin coin-2">💛</div>
+			<div class="coin coin-3">🌟</div>
+		</div>
+
+		<!-- FEATURES (alternating full-image items) -->
+		<section class="features-list">
+			<!-- Pair Me (1 on 1) -->
+			<article class="feature-item">
+				<div class="feature-img">
+					<div class="feature-gallery">
+						<div class="device-phone"><div class="device-screen"><img src="assets/images/features/PairScreen.jpg" alt="Pair Me screen 1"></div></div>
+					</div>
+				</div>
+				<div class="feature-copy">
+					<h3>Pair Me — One-on-One Connections</h3>
+					<p>Use Jlios to instantly pair with someone based on your preferences — age range, country, or mood. Chat anonymously with time-limited sessions, voice notes, and extensions.</p>
+				</div>
+			</article>
+
+			<!-- Stories -->
+			<article class="feature-item reverse">
+				<div class="feature-img">
+					<div class="feature-gallery">
+						<div class="device-phone"><div class="device-screen"><img src="assets/images/features/Story.jpg" alt="Story"></div></div>
+					</div>
+				</div>
+				<div class="feature-copy">
+					<h3>Stories — Speak Your Mind</h3>
+					<p>Post stories freely and anonymously. See what others near you are talking about, or toggle Global Mode to discover worldwide vibes.</p>
+				</div>
+			</article>
+
+			<!-- Anonymous Q&A -->
+			<article class="feature-item">
+				<div class="feature-img">
+					<div class="feature-gallery">
+						<div class="device-phone"><div class="device-screen"><img src="assets/images/features/QA-Answer.png" alt="Q&A answer"></div></div>
+						<div class="device-phone"><div class="device-screen"><img src="assets/images/features/QAinbox.png" alt="Q&A inbox"></div></div>
+					</div>
+				</div>
+				<div class="feature-copy">
+					<h3>Anonymous Q&A</h3>
+					<p>Create your personal JLIO link, share it anywhere, and receive honest anonymous questions. Reply with your thoughts and build your personality through answers.</p>
+				</div>
+			</article>
+
+			<!-- Avatar Customization -->
+			<article class="feature-item reverse">
+				<div class="feature-img">
+					<div class="feature-gallery">
+						<div class="device-phone"><div class="device-screen"><img src="assets/images/features/AvatarCustomization.jpg" alt="Avatar customization"></div></div>
+						<div class="feature-thumbs">
+							<!-- no thumbs for this feature currently -->
+						</div>
+					</div>
+				</div>
+				<div class="feature-copy">
+					<h3>Avatar Customization</h3>
+					<p>Design your JLIO avatar using DiceBear styles. Choose colors, hairstyles, and expressions — or unlock premium styles using Jlios.</p>
+				</div>
+			</article>
+
+			<!-- Search preferences for pairing -->
+			<article class="feature-item">
+				<div class="feature-img">
+					<div class="feature-gallery">
+						<div class="device-phone"><div class="device-screen"><img src="assets/images/features/HomePage.jpg" alt="Search Preferences Screen"></div></div>
+					</div>
+				</div>
+				<div class="feature-copy">
+					<h3>Search Preferences</h3>
+					<p>Set pairing preferences like region, age range, and mood to find better matches. Spend Jlios to prioritize or extend successful pairings.</p>
+				</div>
+			</article>
+		</section>
+
+		<!-- AVATAR & JLIOS -->
+		<section class="avatar-jlios">
+			<div class="avatar-box jlios-icon">
+				💎
+			</div>
+			<div class="balance">
+				<h3>Jlios — Earn it. Spend it. Unlock your world.</h3>
+				<p>Earn Jlios through activity and spend them on Pair Me, custom questions, and premium avatars.</p>
+				<ul>
+					<li>Daily streaks</li>
+					<li>Answering questions</li>
+					<li>Completing challenges</li>
+				</ul>
+			</div>
+		</section>
+
+		<!-- PRIVACY -->
+		<section class="privacy">
+			<h4>Full control, full privacy.</h4>
+			<p>Delete your data anytime, manage notifications, and control your JLIO experience — all without losing your anonymity. <a href="safety.html">Read our Safety & Privacy policies</a>.</p>
+		</section>
+
+		<!-- CONTACT SECTION -->
+		<section id="contact" class="contact-section">
+			<div class="contact-container">
+				<h2>Get in Touch</h2>
+				<p class="contact-subtitle">Have questions or feedback? We'd love to hear from you!</p>
+				
+				<div class="contact-grid">
+					<div class="contact-card">
+						<div class="contact-icon">📧</div>
+						<h3>Email Support</h3>
+						<p>For general inquiries and support</p>
+						<a href="mailto:support@jlio.app" class="contact-link">support@jlio.app</a>
+					</div>
+
+					<div class="contact-card">
+						<div class="contact-icon">⚖️</div>
+						<h3>Legal & Privacy</h3>
+						<p>Questions about policies and safety</p>
+						<a href="mailto:legal@jlio.app" class="contact-link">legal@jlio.app</a>
+					</div>
+
+					<div class="contact-card">
+						<div class="contact-icon">🐛</div>
+						<h3>Report Issues</h3>
+						<p>Found a bug or safety concern?</p>
+						<a href="mailto:abuse@jlio.app" class="contact-link">abuse@jlio.app</a>
+					</div>
+
+					<div class="contact-card">
+						<div class="contact-icon">💡</div>
+						<h3>Feature Request</h3>
+						<p>Share your ideas to improve JLIO</p>
+						<a href="mailto:feedback@jlio.app" class="contact-link">feedback@jlio.app</a>
+					</div>
+				</div>
+
+				<div class="contact-form-section">
+					<h3>Send us a Message</h3>
+					<form class="contact-form" id="contactForm">
+						<div class="form-group">
+							<label for="name">Name</label>
+							<input type="text" id="name" name="name" required placeholder="Your name">
+						</div>
+						<div class="form-group">
+							<label for="email">Email</label>
+							<input type="email" id="email" name="email" required placeholder="your@email.com">
+						</div>
+						<div class="form-group">
+							<label for="subject">Subject</label>
+							<input type="text" id="subject" name="subject" required placeholder="What's this about?">
+						</div>
+						<div class="form-group">
+							<label for="message">Message</label>
+							<textarea id="message" name="message" required placeholder="Tell us what's on your mind..." rows="5"></textarea>
+						</div>
+						<button type="submit" class="btn btn--primary">Send Message</button>
+					</form>
+				</div>
+			</div>
+		</section>
+
+		<!-- FINAL CTA -->
+		<section id="download" class="final-cta">
+			<h2>Ready to Just Let It Out?</h2>
+			<p>Download JLIO and start connecting — safely and anonymously.</p>
+			<div style="margin-top:12px; display:flex; gap:12px; justify-content:center;">
+				<a href="#" class="btn btn--store"><img src="assets/images/app-store-badge.png" alt="Download on the App Store" style="height:44px;"></a>
+				<a href="#" class="btn btn--store"><img src="assets/images/play-store-badge.png" alt="Get it on Google Play" style="height:44px;"></a>
+			</div>
+		</section>
+
+		<!-- Page content will be built here -->
+
+	</main>
+
+<script src="assets/landing.js"></script>
+<script>
+// Mobile nav toggle
+const navToggle = document.getElementById('nav-toggle');
+const primaryNav = document.getElementById('primary-nav');
+
+if (navToggle) {
+	navToggle.addEventListener('click', () => {
+		const isExpanded = navToggle.getAttribute('aria-expanded') === 'true';
+		navToggle.setAttribute('aria-expanded', !isExpanded);
+		primaryNav.style.display = isExpanded ? 'none' : 'flex';
+	});
+}
+
+// Contact form handling
+const contactForm = document.getElementById('contactForm');
+if (contactForm) {
+	contactForm.addEventListener('submit', function(e) {
+		e.preventDefault();
+		
+		const name = document.getElementById('name').value;
+		const email = document.getElementById('email').value;
+		const subject = document.getElementById('subject').value;
+		const message = document.getElementById('message').value;
+		
+		// Create mailto link with pre-filled fields
+		const mailtoLink = `mailto:support@jlio.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`From: ${name}\nEmail: ${email}\n\n${message}`)}`;
+		
+		// Open email client
+		window.location.href = mailtoLink;
+		
+		// Reset form after a short delay
+		setTimeout(() => {
+			contactForm.reset();
+		}, 100);
+	});
+}
+</script>
+</body>
+</html>
+
