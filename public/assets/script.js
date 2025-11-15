@@ -105,6 +105,10 @@ async function fetchAndDisplayProfile() {
 				document.getElementById('questionForm').style.display = 'none';
 				document.getElementById('errorMessage').style.display = 'block';
 				document.getElementById('errorMessage').textContent = '❌ This user is not accepting questions.';
+			} else {
+				// Ensure form is visible when user is found and accepting questions
+				document.getElementById('questionForm').style.display = 'flex';
+				document.getElementById('errorMessage').style.display = 'none';
 			}
 		} else {
 			console.log('No user document found');
