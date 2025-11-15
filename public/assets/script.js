@@ -56,17 +56,30 @@ async function fetchAndDisplayProfile() {
 		
 		// If we have a username parameter, look up user by username
 		if (usernameParam && !userId) {
+			console.log('Looking up user by username:', usernameParam);
 			const usersRef = collection(db, 'users');
-			const q = query(usersRef, where('username', '==', usernameParam.toLowerCase()));
-			const querySnapshot = await getDocs(q);
+			// Try exact match first (case-sensitive)
+			let q = query(usersRef, where('username', '==', usernameParam));
+			let querySnapshot = await getDocs(q);
+			
+			// If not found, try lowercase
+			if (querySnapshot.empty) {
+				console.log('Trying lowercase username:', usernameParam.toLowerCase());
+				q = query(usersRef, where('username', '==', usernameParam.toLowerCase()));
+				querySnapshot = await getDocs(q);
+			}
 			
 			if (!querySnapshot.empty) {
 				userDoc = querySnapshot.docs[0];
 				userId = userDoc.id; // Set userId for form submission
+				console.log('Found user:', userId);
+			} else {
+				console.log('User not found with username:', usernameParam);
 			}
 		} 
 		// Otherwise look up by userId directly
 		else if (userId) {
+			console.log('Looking up user by ID:', userId);
 			const userRef = doc(db, 'users', userId);
 			const userSnap = await getDoc(userRef);
 			if (userSnap.exists()) {
@@ -91,6 +104,7 @@ async function fetchAndDisplayProfile() {
 				document.getElementById('errorMessage').textContent = '❌ This user is not accepting questions.';
 			}
 		} else {
+			console.log('No user document found');
 			profileUsername.textContent = '@unknown';
 			userAvatar.src = '/assets/images/logo.png';
 			document.getElementById('questionForm').style.display = 'none';
