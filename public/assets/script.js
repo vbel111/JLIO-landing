@@ -20,22 +20,25 @@ const db = getFirestore(app);
 const urlParams = new URLSearchParams(window.location.search);
 let username = 'Someone';
 let userId = null;
+let usernameParam = null;
 
-// First check query parameter ?user=username (new format)
-const usernameParam = urlParams.get('user');
-if (usernameParam) {
-  // We have a username, need to look it up to get userId
-  username = usernameParam;
+// Priority 1: Check query parameter ?user=username (from Vercel rewrite)
+usernameParam = urlParams.get('user');
+
+// Priority 2: Check for direct userId query params
+if (!usernameParam) {
+  userId = urlParams.get('uid') || urlParams.get('userId');
 }
 
-// Fallback: Extract user ID from URL path: /ask/USER_ID format
-if (!usernameParam) {
+// Priority 3: Extract from URL path as fallback (legacy support)
+// Only use this if we don't have a query param
+if (!usernameParam && !userId) {
   const pathparts = window.location.pathname.split('/ask/');
-  userId = pathparts[1] ? decodeURIComponent(pathparts[1]) : null;
+  const pathValue = pathparts[1] ? decodeURIComponent(pathparts[1]) : null;
   
-  // Fallback: check query params for backwards compatibility
-  if (!userId) {
-    userId = urlParams.get('uid') || urlParams.get('userId');
+  // Assume path values are usernames (legacy behavior)
+  if (pathValue) {
+    usernameParam = pathValue;
   }
 }
 
