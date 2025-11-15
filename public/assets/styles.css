@@ -321,6 +321,15 @@
 	.top-bar .nav-center { display:none; }
 }
 
+/* Card Footer - Center submit button */
+.card-footer {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	align-items: center;
+	width: 100%;
+}
+
 /* Example button base style (replaces stray/malformed block) */
 .example-question {
 	font-size: 0.98rem;

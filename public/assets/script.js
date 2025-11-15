@@ -159,6 +159,62 @@ function updateCharCounter() {
 
 questionInput.addEventListener('input', updateCharCounter);
 
+// Random question generator
+const exampleQuestions = [
+	"What's a secret you've never told anyone?",
+	"What's your biggest fear?",
+	"If you could change one thing about your past, what would it be?",
+	"What's the most embarrassing thing that's ever happened to you?",
+	"Who do you have a crush on right now?",
+	"What's something you're insecure about?",
+	"What's the last lie you told?",
+	"What's your most unpopular opinion?",
+	"What do you think people say about you behind your back?",
+	"What's something you're proud of but never talk about?",
+	"What's your biggest regret?",
+	"If you could be completely honest with someone, who would it be and what would you say?",
+	"What's a habit you wish you could break?",
+	"What's the weirdest thing you've ever done when you were alone?",
+	"What's something you judge people for?",
+	"What's your guilty pleasure?",
+	"If you could restart your life, what would you do differently?",
+	"What's a personality trait you wish you had?",
+	"What do you worry about most?",
+	"What's the nicest thing someone has ever done for you?",
+	"What makes you feel most alive?",
+	"What's your favorite childhood memory?",
+	"If you could have dinner with anyone dead or alive, who would it be?",
+	"What's something you want to learn but haven't yet?",
+	"What would your perfect day look like?"
+];
+
+const exampleQuestionEl = document.getElementById('exampleQuestion');
+const exampleTextEl = document.getElementById('exampleText');
+
+function getRandomQuestion() {
+	const randomIndex = Math.floor(Math.random() * exampleQuestions.length);
+	return exampleQuestions[randomIndex];
+}
+
+exampleQuestionEl.addEventListener('click', () => {
+	const newQuestion = getRandomQuestion();
+	exampleTextEl.textContent = newQuestion;
+	questionInput.value = newQuestion;
+	updateCharCounter();
+	questionInput.focus();
+});
+
+exampleQuestionEl.addEventListener('keydown', (e) => {
+	if (e.key === 'Enter' || e.key === ' ') {
+		e.preventDefault();
+		const newQuestion = getRandomQuestion();
+		exampleTextEl.textContent = newQuestion;
+		questionInput.value = newQuestion;
+		updateCharCounter();
+		questionInput.focus();
+	}
+});
+
 // 🔍 Enhanced device fingerprinting and metadata capture
 function captureDeviceMetadata() {
 	const ua = navigator.userAgent;
