@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { addDoc, collection, doc, getDoc, getFirestore, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { addDoc, collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Firebase configuration - replace with your config
 const firebaseConfig = {
@@ -19,7 +19,26 @@ const db = getFirestore(app);
 // Get URL parameters
 const urlParams = new URLSearchParams(window.location.search);
 let username = 'Someone';
-let userId = urlParams.get('uid') || urlParams.get('userId') || window.location.pathname.split('/ask/')[1];
+let userId = null;
+
+// First check query parameter ?user=username (new format)
+const usernameParam = urlParams.get('user');
+if (usernameParam) {
+  // We have a username, need to look it up to get userId
+  username = usernameParam;
+}
+
+// Fallback: Extract user ID from URL path: /ask/USER_ID format
+if (!usernameParam) {
+  const pathparts = window.location.pathname.split('/ask/');
+  userId = pathparts[1] ? decodeURIComponent(pathparts[1]) : null;
+  
+  // Fallback: check query params for backwards compatibility
+  if (!userId) {
+    userId = urlParams.get('uid') || urlParams.get('userId');
+  }
+}
+
 const customQuestionId = urlParams.get('qid') || urlParams.get('customQuestionId');
 const customQuestionText = urlParams.get('qt') || urlParams.get('customQuestionText');
 
@@ -30,17 +49,34 @@ const profileUsername = document.getElementById('profileUsername');
 const profileLoading = document.getElementById('profileLoading');
 
 async function fetchAndDisplayProfile() {
-	if (!userId) {
-		profileUsername.textContent = '@unknown';
-		userAvatar.src = '/assets/images/logo.png';
-		return;
-	}
 	profileLoading.style.display = 'block';
+	
 	try {
-		const userRef = doc(db, 'users', userId);
-		const userSnap = await getDoc(userRef);
-		if (userSnap.exists()) {
-			const data = userSnap.data();
+		let userDoc = null;
+		
+		// If we have a username parameter, look up user by username
+		if (usernameParam && !userId) {
+			const usersRef = collection(db, 'users');
+			const q = query(usersRef, where('username', '==', usernameParam.toLowerCase()));
+			const querySnapshot = await getDocs(q);
+			
+			if (!querySnapshot.empty) {
+				userDoc = querySnapshot.docs[0];
+				userId = userDoc.id; // Set userId for form submission
+			}
+		} 
+		// Otherwise look up by userId directly
+		else if (userId) {
+			const userRef = doc(db, 'users', userId);
+			const userSnap = await getDoc(userRef);
+			if (userSnap.exists()) {
+				userDoc = userSnap;
+			}
+		}
+		
+		// Display profile if found
+		if (userDoc && userDoc.exists()) {
+			const data = userDoc.data();
 			username = data.username || 'Someone';
 			profileUsername.textContent = `@${username}`;
 			if (data.avatar) {
@@ -62,6 +98,7 @@ async function fetchAndDisplayProfile() {
 			document.getElementById('errorMessage').textContent = '❌ User not found.';
 		}
 	} catch (e) {
+		console.error('Error loading profile:', e);
 		profileUsername.textContent = '@unknown';
 		userAvatar.src = '/assets/images/logo.png';
 		document.getElementById('questionForm').style.display = 'none';
