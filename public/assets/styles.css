@@ -141,26 +141,37 @@
 
 @media (max-width:700px){
 	.nav-center { 
-        display:none;
-        flex-direction:column; 
-        gap:6px;
-        background:transparent; 
-        position:absolute;
-        top:64px;
-        left:0;
-        right:0;
-        padding:12px;
-        background:#f3f4f8;
-        box-shadow:0 4px 8px rgba(0,0,0,0.08);
-    }
-    .nav-center.show {
         display:flex;
+        flex-direction:row; 
+        gap:4px;
+        background:transparent; 
+        position:static;
+        padding:0;
+        box-shadow:none;
+        align-items:center;
+        justify-content:center;
+        flex:1 1 auto;
     }
 	.top-nav-btn{ 
-        width:100%;
-        text-align:left;
-        padding:10px 12px;
+        padding:7px 10px;
+        font-size:0.85rem;
+        white-space:nowrap;
     }
+    .nav-wrap { 
+        gap:6px;
+        max-width:100%;
+    }
+}
+
+@media (max-width:640px) {
+  .top-nav-btn{
+    padding:6px 8px;
+    font-size:0.8rem;
+  }
+  .nav-wrap {
+    gap:4px;
+    padding:4px 8px;
+  }
 }
 
 /* --- Question Card --- */

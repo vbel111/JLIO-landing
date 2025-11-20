@@ -622,51 +622,30 @@ body.landing {
   100%{ transform:translateY(0) scale(1); opacity:0.6;} 
 }
 
-/* Mobile nav behaviors */
-#nav-toggle { display:none; }
+/* Mobile nav - nav always visible with responsive sizing */
 @media (max-width:700px){
-  #nav-toggle { 
-    display:inline-flex; 
-    background:transparent; 
-    border:none; 
-    font-size:1.5rem; 
-    padding:8px 12px;
-    cursor:pointer;
-    z-index:100;
-  }
   .nav-center { 
-    display:none !important;
-    flex-direction:column; 
-    gap:8px;
-    background:#fff; 
-    position:fixed;
-    top:60px;
-    left:0;
-    right:0;
-    padding:16px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.15);
-    z-index:99;
-    border-radius:0 0 12px 12px;
-  }
-  .nav-center[style*="display: flex"] {
     display:flex !important;
+    flex-direction:row; 
+    gap:4px;
   }
   .top-nav-btn{ 
-    width:100%;
-    text-align:left;
-    padding:12px 16px;
-    border-radius:8px;
-    font-weight:500;
-    border:none;
-    background:transparent;
-    cursor:pointer;
-    transition: background 0.2s ease;
-  }
-  .top-nav-btn:hover {
-    background:#f0f0f0;
+    padding:7px 10px;
+    font-size:0.85rem;
+    border-radius:6px;
   }
   .nav-wrap { 
-    gap:12px;
+    gap:6px;
+  }
+}
+
+@media (max-width:640px) {
+  .top-nav-btn{
+    padding:6px 8px;
+    font-size:0.8rem;
+  }
+  .nav-wrap {
+    gap:4px;
   }
 }
 
