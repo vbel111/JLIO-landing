@@ -299,7 +299,7 @@ body.landing {
 .final-cta h2 { margin:0 0 12px; }
 
 /* Alternating feature list */
-.features-list { max-width:var(--max-width-site); margin:0 auto; display:block; padding:0; scroll-snap-type: y mandatory; scroll-padding-top:84px; }
+.features-list { max-width:var(--max-width-site); margin:60px auto 0; display:block; padding:0; scroll-snap-type: y mandatory; scroll-padding-top:84px; }
 .feature-item { 
   display:flex; 
   gap:48px; 
@@ -492,6 +492,7 @@ body.landing {
   }
   .feature-item {
     padding:28px 16px;
+    margin:48px auto;
   }
   .hero-coins {
     top:70px;
@@ -534,7 +535,7 @@ body.landing {
   .feature-item {
     padding:22px 12px;
     gap:16px;
-    margin:14px auto;
+    margin:40px auto;
   }
   .feature-copy {
     padding:6px;
