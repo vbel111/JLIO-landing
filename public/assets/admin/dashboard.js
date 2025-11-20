@@ -102,8 +102,11 @@ async function initializeDashboard() {
     // Load overview data
     await loadOverviewData();
     
-    // Setup real-time listeners
-    setupRealTimeListeners();
+    // Setup real-time listeners with a delay to prevent interference
+    setTimeout(() => {
+      console.log('🔄 Activating real-time listeners after initial load...');
+      setupRealTimeListeners();
+    }, 2000);
     
     console.log('✅ Dashboard initialized successfully');
   } catch (error) {
@@ -180,78 +183,112 @@ window.switchPage = function(page) {
 
 // Setup real-time listeners for actual app data
 function setupRealTimeListeners() {
-  // Listen to reports for real-time moderation updates
+  console.log('🔄 Setting up real-time listeners...');
+  
+  // Listen to reports for real-time moderation updates (simplified to avoid index requirements)
   const reportsQuery = query(
-    collection(db, 'reports'),
-    where('status', '==', 'pending'),
-    orderBy('createdAt', 'desc')
+    collection(db, 'reports')
   );
   
   const unsubscribeReports = onSnapshot(reportsQuery, (snapshot) => {
-    const pendingCount = snapshot.size;
-    document.getElementById('pendingReports').textContent = pendingCount;
-    
-    // Count critical reports
-    let criticalCount = 0;
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      if (data.priority === 'critical') {
-        criticalCount++;
+    try {
+      let pendingCount = 0;
+      let criticalCount = 0;
+      
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.status === 'pending') {
+          pendingCount++;
+          if (data.priority === 'critical') {
+            criticalCount++;
+          }
+        }
+      });
+      
+      // Only update if we have data
+      if (snapshot.size > 0) {
+        document.getElementById('pendingReports').textContent = pendingCount;
+        
+        if (criticalCount > 0) {
+          document.getElementById('reportsChange').textContent = `${criticalCount} Critical`;
+          document.getElementById('reportsChange').classList.add('urgent');
+        } else if (pendingCount > 0) {
+          document.getElementById('reportsChange').textContent = 'Need Review';
+          document.getElementById('reportsChange').classList.add('urgent');
+        } else {
+          document.getElementById('reportsChange').textContent = 'All Clear';
+          document.getElementById('reportsChange').classList.remove('urgent');
+        }
       }
-    });
-    
-    if (criticalCount > 0) {
-      document.getElementById('reportsChange').textContent = `${criticalCount} Critical`;
-      document.getElementById('reportsChange').classList.add('urgent');
-    } else if (pendingCount > 0) {
-      document.getElementById('reportsChange').textContent = 'Need Review';
-      document.getElementById('reportsChange').classList.add('urgent');
-    } else {
-      document.getElementById('reportsChange').textContent = 'All Clear';
-      document.getElementById('reportsChange').classList.remove('urgent');
+      console.log('✅ Reports listener updated');
+    } catch (error) {
+      console.error('Error in reports listener:', error);
     }
+  }, (error) => {
+    console.error('❌ Reports listener error:', error.code, error.message);
   });
   
   realTimeListeners.push(unsubscribeReports);
   
-  // Listen to new users from actual users collection
+  // Listen to new users from actual users collection (simplified query to avoid index requirements)
   const usersQuery = query(
-    collection(db, 'users'),
-    orderBy('joinedAt', 'desc'),
-    limit(100)
+    collection(db, 'users')
   );
   
   const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
-    const totalUsers = snapshot.size;
-    document.getElementById('totalUsers').textContent = totalUsers;
-    
-    // Count today's new users
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayTimestamp = Timestamp.fromDate(today);
-    
-    let todayCount = 0;
-    snapshot.forEach(doc => {
-      const userData = doc.data();
-      if (userData.joinedAt && userData.joinedAt >= todayTimestamp) {
-        todayCount++;
+    try {
+      const totalUsers = snapshot.size;
+      console.log('✅ Users listener updated: ' + totalUsers + ' users');
+      
+      // Only update if we got valid data
+      if (totalUsers > 0) {
+        document.getElementById('totalUsers').textContent = totalUsers;
+        
+        // Count today's new users
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayTimestamp = Timestamp.fromDate(today);
+        
+        let todayCount = 0;
+        snapshot.forEach(doc => {
+          const userData = doc.data();
+          if (userData.joinedAt && userData.joinedAt >= todayTimestamp) {
+            todayCount++;
+          }
+        });
+        
+        document.getElementById('usersChange').textContent = `+${todayCount} today`;
       }
-    });
-    
-    document.getElementById('usersChange').textContent = `+${todayCount} today`;
+    } catch (error) {
+      console.error('Error in users listener:', error);
+    }
+  }, (error) => {
+    console.error('❌ Users listener error:', error.code, error.message);
+    // Don't fail silently - log the error
   });
   
   realTimeListeners.push(unsubscribeUsers);
   
-  // Listen to active chat sessions
+  // Listen to active chat sessions (simplified query)
   const sessionsQuery = query(
-    collection(db, 'pair_sessions'),
-    where('status', '==', 'active')
+    collection(db, 'pair_sessions')
   );
   
   const unsubscribeSessions = onSnapshot(sessionsQuery, (snapshot) => {
-    const activeSessions = snapshot.size;
-    console.log(`🔗 Active chat sessions: ${activeSessions}`);
+    try {
+      let activeSessions = 0;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.status === 'active') {
+          activeSessions++;
+        }
+      });
+      console.log(`🔗 Active chat sessions: ${activeSessions}`);
+    } catch (error) {
+      console.error('Error in sessions listener:', error);
+    }
+  }, (error) => {
+    console.error('❌ Sessions listener error:', error.code, error.message);
   });
   
   realTimeListeners.push(unsubscribeSessions);
@@ -263,26 +300,54 @@ async function loadOverviewData() {
     console.log('📊 Loading overview data...');
     
     // Load users count from the actual users collection
-    const usersSnapshot = await getDocs(collection(db, 'users'));
-    document.getElementById('totalUsers').textContent = usersSnapshot.size;
+    try {
+      const usersSnapshot = await getDocs(collection(db, 'users'));
+      console.log('✅ Users loaded:', usersSnapshot.size);
+      document.getElementById('totalUsers').textContent = usersSnapshot.size;
+    } catch (e) {
+      console.warn('⚠️ Users collection error:', e.code, e.message);
+      document.getElementById('totalUsers').textContent = '0';
+    }
     
     // Load stories count from the actual stories collection
-    const storiesSnapshot = await getDocs(collection(db, 'stories'));
-    document.getElementById('totalStories').textContent = storiesSnapshot.size;
+    try {
+      const storiesSnapshot = await getDocs(collection(db, 'stories'));
+      console.log('✅ Stories loaded:', storiesSnapshot.size);
+      document.getElementById('totalStories').textContent = storiesSnapshot.size;
+    } catch (e) {
+      console.warn('⚠️ Stories collection error:', e.code, e.message);
+      document.getElementById('totalStories').textContent = '0';
+    }
     
     // Load chats count (both regular chats and pair sessions)
-    const chatsSnapshot = await getDocs(collection(db, 'chats'));
-    const sessionsSnapshot = await getDocs(collection(db, 'pair_sessions'));
-    const totalChats = chatsSnapshot.size + sessionsSnapshot.size;
-    document.getElementById('totalChats').textContent = totalChats;
+    try {
+      const chatsSnapshot = await getDocs(collection(db, 'chats'));
+      const sessionsSnapshot = await getDocs(collection(db, 'pair_sessions'));
+      const totalChats = chatsSnapshot.size + sessionsSnapshot.size;
+      console.log('✅ Chats loaded:', totalChats);
+      document.getElementById('totalChats').textContent = totalChats;
+    } catch (e) {
+      console.warn('⚠️ Chats collection error:', e.code, e.message);
+      document.getElementById('totalChats').textContent = '0';
+    }
     
     // Load questions count from actual questions collection
-    const questionsSnapshot = await getDocs(collection(db, 'questions'));
-    const questionsCount = questionsSnapshot.size;
+    try {
+      const questionsSnapshot = await getDocs(collection(db, 'questions'));
+      const questionsCount = questionsSnapshot.size;
+      console.log('✅ Questions loaded:', questionsCount);
+    } catch (e) {
+      console.warn('⚠️ Questions collection error:', e.code, e.message);
+    }
     
     // Load responses count
-    const responsesSnapshot = await getDocs(collection(db, 'responses'));
-    const responsesCount = responsesSnapshot.size;
+    try {
+      const responsesSnapshot = await getDocs(collection(db, 'responses'));
+      const responsesCount = responsesSnapshot.size;
+      console.log('✅ Responses loaded:', responsesCount);
+    } catch (e) {
+      console.warn('⚠️ Responses collection error:', e.code, e.message);
+    }
     
     // Load recent activity from actual app data
     await loadRecentActivity();
@@ -291,7 +356,9 @@ async function loadOverviewData() {
     await loadJLiosStats();
     
   } catch (error) {
-    console.error('Error loading overview data:', error);
+    console.error('❌ Error loading overview data:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
   }
 }
 
@@ -430,7 +497,17 @@ async function loadRecentActivity() {
     displayActivities(activities.slice(0, 10));
     
   } catch (error) {
-    console.error('Error loading recent activity:', error);
+    console.error('❌ Error loading recent activity:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    const activityList = document.getElementById('recentActivity');
+    if (activityList) {
+      activityList.innerHTML = `
+        <div class="activity-item loading" style="color: #d32f2f;">
+          Error loading activity: ${error.message}
+        </div>
+      `;
+    }
   }
 }
 
@@ -460,12 +537,25 @@ async function loadModerationData() {
   console.log('🛡️ Loading moderation data...');
   
   try {
-    const reportsQuery = query(
-      collection(db, 'reports'),
-      orderBy('createdAt', 'desc')
-    );
+    // Try with orderBy first
+    let snapshot;
+    try {
+      const reportsQuery = query(
+        collection(db, 'reports'),
+        orderBy('createdAt', 'desc')
+      );
+      snapshot = await getDocs(reportsQuery);
+    } catch (err) {
+      if (err.code === 'failed-precondition') {
+        console.warn('⚠️ Index not available, loading without sort');
+        snapshot = await getDocs(collection(db, 'reports'));
+      } else {
+        throw err;
+      }
+    }
     
-    const snapshot = await getDocs(reportsQuery);
+    console.log('✅ Reports loaded:', snapshot.size);
+    
     const reports = [];
     
     snapshot.forEach(doc => {
@@ -478,9 +568,19 @@ async function loadModerationData() {
     displayReports(reports);
     
   } catch (error) {
-    console.error('Error loading moderation data:', error);
-    document.getElementById('reportsList').innerHTML = 
-      '<div class="loading-placeholder">Error loading reports</div>';
+    console.error('❌ Error loading moderation data:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    
+    const reportsList = document.getElementById('reportsList');
+    reportsList.innerHTML = `
+      <div class="loading-placeholder" style="color: #d32f2f; padding: 20px; background: #ffebee; border-radius: 8px;">
+        <strong>Error loading reports:</strong><br>
+        <strong>Code:</strong> ${error.code || 'UNKNOWN'}<br>
+        <strong>Message:</strong> ${error.message || 'Unknown error'}<br>
+        <small>Check browser console (F12) for details</small>
+      </div>
+    `;
   }
 }
 
@@ -995,13 +1095,15 @@ async function loadUsersData() {
   console.log('👥 Loading users data...');
   
   try {
+    // Load users without complex queries to avoid index requirements
     const usersQuery = query(
       collection(db, 'users'),
-      orderBy('joinedAt', 'desc'),
       limit(100)
     );
-    
     const snapshot = await getDocs(usersQuery);
+    
+    console.log('✅ Users snapshot received, count:', snapshot.size);
+    
     const users = [];
     
     snapshot.forEach(doc => {
@@ -1011,12 +1113,31 @@ async function loadUsersData() {
       });
     });
     
+    console.log('✅ Users processed:', users.length);
     displayUsers(users);
     
   } catch (error) {
-    console.error('Error loading users data:', error);
-    document.getElementById('usersList').innerHTML = 
-      '<div class="loading-placeholder">Error loading users</div>';
+    console.error('❌ Error loading users data:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Full error:', error);
+    
+    // Show detailed error to admin
+    const usersList = document.getElementById('usersList');
+    usersList.innerHTML = `
+      <div class="loading-placeholder" style="color: #d32f2f; padding: 20px; background: #ffebee; border-radius: 8px;">
+        <strong>Error loading users:</strong><br>
+        <strong>Code:</strong> ${error.code || 'UNKNOWN'}<br>
+        <strong>Message:</strong> ${error.message || 'Unknown error'}<br>
+        <small>Check browser console (F12) for more details</small><br>
+        <small style="font-size: 0.8em; margin-top: 10px; display: block;">
+          Common issues:<br>
+          • Firestore permissions not configured<br>
+          • User collection doesn't exist<br>
+          • Missing composite index for 'joinedAt' field
+        </small>
+      </div>
+    `;
   }
 }
 
