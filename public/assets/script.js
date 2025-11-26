@@ -132,11 +132,40 @@ async function fetchAndDisplayProfile() {
 
 fetchAndDisplayProfile();
 
-// Pre-fill custom question if provided
-if (customQuestionText) {
-	document.getElementById('questionText').value = customQuestionText;
-	updateCharCounter();
+// Pre-fill or display custom question if provided
+async function maybeLoadCustomQuestion() {
+	let text = customQuestionText || '';
+
+	// If we have only an ID, try to fetch the text from Firestore
+	if (customQuestionId && !text) {
+		try {
+			const cqRef = doc(db, 'customQuestions', customQuestionId);
+			const cqSnap = await getDoc(cqRef);
+			if (cqSnap.exists()) {
+				const data = cqSnap.data();
+				text = data && data.text ? data.text : '';
+			}
+		} catch (err) {
+			console.warn('Failed to load custom question text:', err);
+		}
+	}
+
+	if (text) {
+		// Show the banner and populate it (do NOT auto-fill the textarea value)
+		const banner = document.getElementById('customQuestionBanner');
+		const bannerText = document.getElementById('customQuestionText');
+		if (banner && bannerText) {
+			bannerText.textContent = text;
+			banner.style.display = 'block';
+		}
+
+		// Use the custom question as the input placeholder so users still type their own response
+		questionInput.placeholder = text;
+		updateCharCounter();
+	}
 }
+
+maybeLoadCustomQuestion();
 
 // Character counter
 const questionInput = document.getElementById('questionText');
