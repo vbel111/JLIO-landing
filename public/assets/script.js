@@ -282,24 +282,93 @@ function captureDeviceMetadata() {
 	// Extract device model (best effort - UA doesn't contain exact iPhone model)
 	let deviceModel = 'Desktop/Laptop';
 	if (/iPhone/i.test(ua)) {
-		// iPhones don't expose exact model in UA, just generic "iPhone"
-		deviceModel = 'iPhone';
+		// iPhones don't expose exact model in UA, try to detect by screen size
+		const width = window.screen.width;
+		const height = window.screen.height;
+		const ratio = window.devicePixelRatio || 1;
+		
+		// iPhone model detection based on screen dimensions
+		if (width === 430 || height === 932) deviceModel = 'iPhone 15 Pro Max';
+		else if (width === 393 || height === 852) deviceModel = 'iPhone 15 Pro';
+		else if (width === 390 || height === 844) deviceModel = 'iPhone 15';
+		else if (width === 428 || height === 926) deviceModel = 'iPhone 14 Pro Max';
+		else if (width === 414 || height === 896) deviceModel = 'iPhone 11 Pro Max';
+		else if (width === 375 || height === 812) deviceModel = 'iPhone X/XS/11 Pro';
+		else deviceModel = 'iPhone'; // Fallback for unknown models
 	} else if (/iPad/i.test(ua)) {
-		if (/iPad; CPU OS/i.test(ua)) {
-			deviceModel = 'iPad';
-		} else {
-			deviceModel = 'iPad';
-		}
+		// Try to detect iPad model by screen size
+		const width = window.screen.width;
+		const height = window.screen.height;
+		
+		if (width === 1024 && height === 1366) deviceModel = 'iPad Pro 12.9"';
+		else if (width === 834 && height === 1194) deviceModel = 'iPad Pro 11"';
+		else if (width === 820 && height === 1180) deviceModel = 'iPad Air';
+		else if (width === 810 && height === 1080) deviceModel = 'iPad 10th gen';
+		else if (width === 768 && height === 1024) deviceModel = 'iPad';
+		else deviceModel = 'iPad'; // Generic fallback
 	} else if (/Android/i.test(ua)) {
-		// Try to extract Android device model from UA
-		const modelMatch = ua.match(/;\s*([^;)]+)\s+Build/i);
+		// Extract Android device model from UA - most Android UAs have format: "...; MODEL Build/..."
+		let modelMatch = ua.match(/;\s*([^;)]+)\s+Build/i);
+		
 		if (modelMatch && modelMatch[1]) {
-			const model = modelMatch[1].trim();
-			// Clean up common prefixes
-			if (model.startsWith('SM-')) deviceModel = 'Samsung ' + model;
-			else if (model.includes('Pixel')) deviceModel = 'Google ' + model;
-			else deviceModel = model;
-		} else if (/SM-/i.test(ua)) {
+			let model = modelMatch[1].trim();
+			
+			// Clean up and format model names
+			// Samsung devices (SM- prefix)
+			if (model.startsWith('SM-')) {
+				// Map common Samsung models
+				if (model.includes('S23')) deviceModel = 'Samsung Galaxy S23';
+				else if (model.includes('S22')) deviceModel = 'Samsung Galaxy S22';
+				else if (model.includes('S21')) deviceModel = 'Samsung Galaxy S21';
+				else if (model.includes('S20')) deviceModel = 'Samsung Galaxy S20';
+				else if (model.includes('A54')) deviceModel = 'Samsung Galaxy A54';
+				else if (model.includes('A53')) deviceModel = 'Samsung Galaxy A53';
+				else if (model.includes('A34')) deviceModel = 'Samsung Galaxy A34';
+				else if (model.includes('A14')) deviceModel = 'Samsung Galaxy A14';
+				else if (model.includes('Z Fold')) deviceModel = 'Samsung Galaxy Z Fold';
+				else if (model.includes('Z Flip')) deviceModel = 'Samsung Galaxy Z Flip';
+				else deviceModel = 'Samsung ' + model; // Keep full model code
+			}
+			// Google Pixel devices
+			else if (model.includes('Pixel')) {
+				if (model.includes('Pixel 8 Pro')) deviceModel = 'Google Pixel 8 Pro';
+				else if (model.includes('Pixel 8')) deviceModel = 'Google Pixel 8';
+				else if (model.includes('Pixel 7 Pro')) deviceModel = 'Google Pixel 7 Pro';
+				else if (model.includes('Pixel 7')) deviceModel = 'Google Pixel 7';
+				else if (model.includes('Pixel 6')) deviceModel = 'Google Pixel 6';
+				else deviceModel = 'Google ' + model;
+			}
+			// Xiaomi/Redmi devices
+			else if (/Redmi|Mi |Poco/i.test(model)) {
+				deviceModel = 'Xiaomi ' + model;
+			}
+			// OnePlus devices
+			else if (/OnePlus/i.test(model)) {
+				deviceModel = model;
+			}
+			// Oppo devices
+			else if (/OPPO|CPH/i.test(model)) {
+				deviceModel = 'Oppo ' + model.replace('CPH', '');
+			}
+			// Vivo devices
+			else if (/vivo|V\d+/i.test(model)) {
+				deviceModel = 'Vivo ' + model;
+			}
+			// Realme devices
+			else if (/RMX|realme/i.test(model)) {
+				deviceModel = 'Realme ' + model.replace('RMX', '');
+			}
+			// Huawei devices
+			else if (/Huawei|HUAWEI|Honor/i.test(model)) {
+				deviceModel = model;
+			}
+			// Generic Android - use the extracted model
+			else {
+				deviceModel = model;
+			}
+		} 
+		// Fallback patterns if Build pattern didn't match
+		else if (/SM-/i.test(ua)) {
 			deviceModel = 'Samsung Galaxy';
 		} else if (/Pixel/i.test(ua)) {
 			deviceModel = 'Google Pixel';
