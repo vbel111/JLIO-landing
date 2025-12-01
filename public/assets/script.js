@@ -404,7 +404,7 @@ document.getElementById('questionForm').addEventListener('submit', async (e) => 
 					os: deviceInfo.os,
 					deviceModel: deviceInfo.deviceModel
 				},
-				exactTime: new Date(),
+				sentAt: serverTimestamp(),
 				timeOfDay: deviceInfo.timeOfDay
 			},
 			views: 0,
