@@ -173,12 +173,12 @@ const charCounter = document.getElementById('charCounter');
 
 function updateCharCounter() {
 	const length = questionInput.value.length;
-	charCounter.textContent = `${length}/500`;
+	charCounter.textContent = `${length}/250`;
     
-	if (length > 450) {
+	if (length > 230) {
 		charCounter.classList.add('error');
 		charCounter.classList.remove('warning');
-	} else if (length > 400) {
+	} else if (length > 200) {
 		charCounter.classList.add('warning');
 		charCounter.classList.remove('error');
 	} else {
