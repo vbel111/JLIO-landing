@@ -1,0 +1,9 @@
+# app-ads.txt for JLIO
+# This file is used to verify app ownership for advertising and monetization purposes
+
+# Google AdMob
+google.com, pub-7194731936773317, DIRECT, f08c47fec0942fa0
+
+# Add your ad network publisher IDs below
+# Format: <domain>, <publisher_id>, <relationship>, <certification_authority_id>
+# Relationship: DIRECT or RESELLER
