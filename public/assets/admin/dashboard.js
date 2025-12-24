@@ -697,9 +697,14 @@ window.openReportModal = async function(reportId) {
               <button class="action-btn" style="background: var(--danger-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="banUser('${reportData.reportedUserId}', '${reportData.id}')">
                 🚫 Ban User
               </button>
-              <button class="action-btn" style="background: var(--warning-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="warnUser('${reportData.reportedUserId}', '${reportData.id}')">
+              <button class="action-btn" style="background: var(--warning-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="warnUserFromModal('${reportData.reportedUserId}')">
                 ⚠️ Warn User
               </button>
+              ${reportData.contentId ? `
+                <button class="action-btn" style="background: #6B7280; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="deleteStoryFromReport('${reportData.contentId}', '${reportData.id}')">
+                  🗑️ Delete Story
+                </button>
+              ` : ''}
             </div>
           </div>
         ` : ''}
@@ -728,6 +733,29 @@ window.resolveReport = async function(reportId, status) {
     console.log(`Report ${reportId} marked as ${status}`);
   } catch (error) {
     console.error('Error resolving report:', error);
+  }
+};
+
+// Delete story from report context via server-side function
+window.deleteStoryFromReport = async function(storyId, reportId) {
+  if (!storyId) {
+    alert('No story ID provided');
+    return;
+  }
+  if (!confirm('Delete this story? This action cannot be undone.')) return;
+  try {
+    if (!window.adminApi || typeof window.adminApi.deleteStory !== 'function') {
+      alert('Admin API not available.');
+      return;
+    }
+    await window.adminApi.deleteStory(storyId);
+    if (reportId && typeof resolveReport === 'function') await resolveReport(reportId, 'resolved');
+    alert('Story deleted successfully.');
+    if (typeof loadModerationData === 'function') loadModerationData();
+    if (typeof closeModal === 'function') closeModal('reportModal');
+  } catch (err) {
+    console.error('Delete story failed:', err);
+    alert('Failed to delete story. See console for details.');
   }
 };
 
@@ -1230,6 +1258,9 @@ window.openUserModal = async function(userId) {
             <button class="action-btn" style="background: var(--primary-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="viewUserActivity('${userData.id}')">
               📊 View Activity
             </button>
+            <button class="action-btn" style="background: #7C3AED; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;" onclick="promptRewardJLios('${userData.id}')">
+              💎 Reward JLios
+            </button>
           </div>
         </div>
       </div>
@@ -1239,6 +1270,30 @@ window.openUserModal = async function(userId) {
     
   } catch (error) {
     console.error('Error opening user modal:', error);
+  }
+};
+
+// Prompt to reward JLios to a user (calls server-side function via admin-api)
+window.promptRewardJLios = async function(userId) {
+  const amt = prompt('Enter JLios amount to reward (numeric):');
+  if (!amt) return;
+  const num = Number(amt);
+  if (isNaN(num) || num <= 0) {
+    alert('Please enter a valid positive number');
+    return;
+  }
+  try {
+    if (!window.adminApi || typeof window.adminApi.rewardJLios !== 'function') {
+      alert('Admin API not available.');
+      return;
+    }
+    await window.adminApi.rewardJLios(userId, num, 'Admin reward via dashboard');
+    alert(`Awarded ${num} JLios to user ${userId}`);
+    if (typeof loadUsersData === 'function') loadUsersData();
+    if (typeof closeModal === 'function') closeModal('userModal');
+  } catch (err) {
+    console.error('Reward failed:', err);
+    alert('Failed to reward JLios. See console for details.');
   }
 };
 
