@@ -1,24 +1,24 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import {
-    getAuth,
-    onAuthStateChanged,
-    signOut
+  getAuth,
+  onAuthStateChanged,
+  signOut
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import {
-    addDoc,
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    getFirestore,
-    limit,
-    onSnapshot,
-    orderBy,
-    query,
-    serverTimestamp,
-    Timestamp,
-    updateDoc,
-    where
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  getFirestore,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  Timestamp,
+  updateDoc,
+  where
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import SecuritySystem from './security-system.js';
 
@@ -52,14 +52,14 @@ const adminPages = document.querySelectorAll('.admin-page');
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 Admin dashboard loading...');
-  
+
   // Check authentication
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       window.location.href = './index.html';
       return;
     }
-    
+
     // Verify admin role
     const isAdmin = await checkAdminRole(user.uid);
     if (!isAdmin) {
@@ -67,12 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = './index.html';
       return;
     }
-    
+
     currentUser = user;
-    
+
     // Initialize security system
     securitySystem = new SecuritySystem(db, auth);
-    
+
     await initializeDashboard();
   });
 });
@@ -92,22 +92,22 @@ async function checkAdminRole(uid) {
 async function initializeDashboard() {
   try {
     console.log('🔧 Initializing dashboard...');
-    
+
     // Load admin info
     await loadAdminInfo();
-    
+
     // Setup navigation
     setupNavigation();
-    
+
     // Load overview data
     await loadOverviewData();
-    
+
     // Setup real-time listeners with a delay to prevent interference
     setTimeout(() => {
       console.log('🔄 Activating real-time listeners after initial load...');
       setupRealTimeListeners();
     }, 2000);
-    
+
     console.log('✅ Dashboard initialized successfully');
   } catch (error) {
     console.error('❌ Dashboard initialization failed:', error);
@@ -138,7 +138,7 @@ function setupNavigation() {
       switchPage(page);
     });
   });
-  
+
   logoutBtn.addEventListener('click', async () => {
     try {
       await signOut(auth);
@@ -150,21 +150,26 @@ function setupNavigation() {
 }
 
 // Switch page
-window.switchPage = function(page) {
+window.switchPage = function (page) {
   // Update nav tabs
   navTabs.forEach(tab => {
     tab.classList.toggle('active', tab.dataset.page === page);
   });
-  
+
   // Update pages
   adminPages.forEach(pageEl => {
     pageEl.classList.toggle('active', pageEl.id === `${page}-page`);
   });
-  
+
   // Load page-specific data
   switch (page) {
     case 'overview':
       loadOverviewData();
+      break;
+    case 'stories':
+      if (typeof window.loadStoriesData === 'function') {
+        window.loadStoriesData();
+      }
       break;
     case 'moderation':
       loadModerationData();
@@ -184,17 +189,17 @@ window.switchPage = function(page) {
 // Setup real-time listeners for actual app data
 function setupRealTimeListeners() {
   console.log('🔄 Setting up real-time listeners...');
-  
+
   // Listen to reports for real-time moderation updates (simplified to avoid index requirements)
   const reportsQuery = query(
     collection(db, 'reports')
   );
-  
+
   const unsubscribeReports = onSnapshot(reportsQuery, (snapshot) => {
     try {
       let pendingCount = 0;
       let criticalCount = 0;
-      
+
       snapshot.forEach(doc => {
         const data = doc.data();
         if (data.status === 'pending') {
@@ -204,11 +209,11 @@ function setupRealTimeListeners() {
           }
         }
       });
-      
+
       // Only update if we have data
       if (snapshot.size > 0) {
         document.getElementById('pendingReports').textContent = pendingCount;
-        
+
         if (criticalCount > 0) {
           document.getElementById('reportsChange').textContent = `${criticalCount} Critical`;
           document.getElementById('reportsChange').classList.add('urgent');
@@ -227,28 +232,28 @@ function setupRealTimeListeners() {
   }, (error) => {
     console.error('❌ Reports listener error:', error.code, error.message);
   });
-  
+
   realTimeListeners.push(unsubscribeReports);
-  
+
   // Listen to new users from actual users collection (simplified query to avoid index requirements)
   const usersQuery = query(
     collection(db, 'users')
   );
-  
+
   const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) => {
     try {
       const totalUsers = snapshot.size;
       console.log('✅ Users listener updated: ' + totalUsers + ' users');
-      
+
       // Only update if we got valid data
       if (totalUsers > 0) {
         document.getElementById('totalUsers').textContent = totalUsers;
-        
+
         // Count today's new users
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const todayTimestamp = Timestamp.fromDate(today);
-        
+
         let todayCount = 0;
         snapshot.forEach(doc => {
           const userData = doc.data();
@@ -256,7 +261,7 @@ function setupRealTimeListeners() {
             todayCount++;
           }
         });
-        
+
         document.getElementById('usersChange').textContent = `+${todayCount} today`;
       }
     } catch (error) {
@@ -266,14 +271,14 @@ function setupRealTimeListeners() {
     console.error('❌ Users listener error:', error.code, error.message);
     // Don't fail silently - log the error
   });
-  
+
   realTimeListeners.push(unsubscribeUsers);
-  
+
   // Listen to active chat sessions (simplified query)
   const sessionsQuery = query(
     collection(db, 'pair_sessions')
   );
-  
+
   const unsubscribeSessions = onSnapshot(sessionsQuery, (snapshot) => {
     try {
       let activeSessions = 0;
@@ -290,7 +295,7 @@ function setupRealTimeListeners() {
   }, (error) => {
     console.error('❌ Sessions listener error:', error.code, error.message);
   });
-  
+
   realTimeListeners.push(unsubscribeSessions);
 }
 
@@ -298,7 +303,7 @@ function setupRealTimeListeners() {
 async function loadOverviewData() {
   try {
     console.log('📊 Loading overview data...');
-    
+
     // Load users count from the actual users collection
     try {
       const usersSnapshot = await getDocs(collection(db, 'users'));
@@ -308,7 +313,7 @@ async function loadOverviewData() {
       console.warn('⚠️ Users collection error:', e.code, e.message);
       document.getElementById('totalUsers').textContent = '0';
     }
-    
+
     // Load stories count from the actual stories collection
     try {
       const storiesSnapshot = await getDocs(collection(db, 'stories'));
@@ -318,7 +323,7 @@ async function loadOverviewData() {
       console.warn('⚠️ Stories collection error:', e.code, e.message);
       document.getElementById('totalStories').textContent = '0';
     }
-    
+
     // Load chats count (both regular chats and pair sessions)
     try {
       const chatsSnapshot = await getDocs(collection(db, 'chats'));
@@ -330,7 +335,7 @@ async function loadOverviewData() {
       console.warn('⚠️ Chats collection error:', e.code, e.message);
       document.getElementById('totalChats').textContent = '0';
     }
-    
+
     // Load questions count from actual questions collection
     try {
       const questionsSnapshot = await getDocs(collection(db, 'questions'));
@@ -339,7 +344,7 @@ async function loadOverviewData() {
     } catch (e) {
       console.warn('⚠️ Questions collection error:', e.code, e.message);
     }
-    
+
     // Load responses count
     try {
       const responsesSnapshot = await getDocs(collection(db, 'responses'));
@@ -348,13 +353,13 @@ async function loadOverviewData() {
     } catch (e) {
       console.warn('⚠️ Responses collection error:', e.code, e.message);
     }
-    
+
     // Load recent activity from actual app data
     await loadRecentActivity();
-    
+
     // Load JLios economy data
     await loadJLiosStats();
-    
+
   } catch (error) {
     console.error('❌ Error loading overview data:', error);
     console.error('Error code:', error.code);
@@ -372,7 +377,7 @@ async function loadJLiosStats() {
       const data = doc.data();
       totalJLiosInCirculation += data.balance || 0;
     });
-    
+
     // Load recent transactions
     const transactionsQuery = query(
       collection(db, 'jliosTransactions'),
@@ -380,16 +385,16 @@ async function loadJLiosStats() {
       limit(100)
     );
     const transactionsSnapshot = await getDocs(transactionsQuery);
-    
+
     let todayEarned = 0;
     let todaySpent = 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     transactionsSnapshot.forEach(doc => {
       const data = doc.data();
       const transactionDate = data.createdAt?.toDate();
-      
+
       if (transactionDate && transactionDate >= today) {
         if (data.type === 'earn') {
           todayEarned += data.amount || 0;
@@ -398,9 +403,9 @@ async function loadJLiosStats() {
         }
       }
     });
-    
+
     console.log(`💰 JLios Stats: ${totalJLiosInCirculation} total, +${todayEarned} earned today, -${todaySpent} spent today`);
-    
+
   } catch (error) {
     console.error('Error loading JLios stats:', error);
   }
@@ -410,7 +415,7 @@ async function loadJLiosStats() {
 async function loadRecentActivity() {
   try {
     const activities = [];
-    
+
     // Get recent reports from actual reports collection
     const reportsQuery = query(
       collection(db, 'reports'),
@@ -418,7 +423,7 @@ async function loadRecentActivity() {
       limit(5)
     );
     const reportsSnapshot = await getDocs(reportsQuery);
-    
+
     reportsSnapshot.forEach(doc => {
       const data = doc.data();
       activities.push({
@@ -431,7 +436,7 @@ async function loadRecentActivity() {
         priority: data.priority || 'medium'
       });
     });
-    
+
     // Get recent user registrations from actual users collection
     const usersQuery = query(
       collection(db, 'users'),
@@ -439,7 +444,7 @@ async function loadRecentActivity() {
       limit(5)
     );
     const usersSnapshot = await getDocs(usersQuery);
-    
+
     usersSnapshot.forEach(doc => {
       const data = doc.data();
       activities.push({
@@ -451,7 +456,7 @@ async function loadRecentActivity() {
         timestamp: data.joinedAt?.toDate() || new Date()
       });
     });
-    
+
     // Get recent stories from actual stories collection
     const storiesQuery = query(
       collection(db, 'stories'),
@@ -459,7 +464,7 @@ async function loadRecentActivity() {
       limit(3)
     );
     const storiesSnapshot = await getDocs(storiesQuery);
-    
+
     storiesSnapshot.forEach(doc => {
       const data = doc.data();
       activities.push({
@@ -471,7 +476,7 @@ async function loadRecentActivity() {
         timestamp: data.createdAt?.toDate() || new Date()
       });
     });
-    
+
     // Get recent questions from actual questions collection
     const questionsQuery = query(
       collection(db, 'questions'),
@@ -479,7 +484,7 @@ async function loadRecentActivity() {
       limit(3)
     );
     const questionsSnapshot = await getDocs(questionsQuery);
-    
+
     questionsSnapshot.forEach(doc => {
       const data = doc.data();
       activities.push({
@@ -491,11 +496,11 @@ async function loadRecentActivity() {
         timestamp: data.createdAt?.toDate() || new Date()
       });
     });
-    
+
     // Sort by timestamp and display
     activities.sort((a, b) => b.timestamp - a.timestamp);
     displayActivities(activities.slice(0, 10));
-    
+
   } catch (error) {
     console.error('❌ Error loading recent activity:', error);
     console.error('Error code:', error.code);
@@ -514,12 +519,12 @@ async function loadRecentActivity() {
 // Display activities
 function displayActivities(activities) {
   const activityList = document.getElementById('recentActivity');
-  
+
   if (activities.length === 0) {
     activityList.innerHTML = '<div class="activity-item loading">No recent activity</div>';
     return;
   }
-  
+
   activityList.innerHTML = activities.map(activity => `
     <div class="activity-item">
       <div class="activity-icon">${activity.icon}</div>
@@ -535,7 +540,7 @@ function displayActivities(activities) {
 // Load moderation data
 async function loadModerationData() {
   console.log('🛡️ Loading moderation data...');
-  
+
   try {
     // Try with orderBy first
     let snapshot;
@@ -553,25 +558,25 @@ async function loadModerationData() {
         throw err;
       }
     }
-    
+
     console.log('✅ Reports loaded:', snapshot.size);
-    
+
     const reports = [];
-    
+
     snapshot.forEach(doc => {
       reports.push({
         id: doc.id,
         ...doc.data()
       });
     });
-    
+
     displayReports(reports);
-    
+
   } catch (error) {
     console.error('❌ Error loading moderation data:', error);
     console.error('Error code:', error.code);
     console.error('Error message:', error.message);
-    
+
     const reportsList = document.getElementById('reportsList');
     reportsList.innerHTML = `
       <div class="loading-placeholder" style="color: #d32f2f; padding: 20px; background: #ffebee; border-radius: 8px;">
@@ -587,27 +592,27 @@ async function loadModerationData() {
 // Display reports with actual app report structure
 function displayReports(reports) {
   const reportsList = document.getElementById('reportsList');
-  
+
   if (reports.length === 0) {
     reportsList.innerHTML = '<div class="loading-placeholder">No reports found</div>';
     return;
   }
-  
+
   reportsList.innerHTML = reports.map(report => {
     const priorityIcon = {
       low: '🔵',
-      medium: '🟡', 
+      medium: '🟡',
       high: '🟠',
       critical: '🔴'
     }[report.priority] || '🟡';
-    
+
     const categoryIcon = {
       message: '💬',
       user_behavior: '👤',
       voice_note: '🎤',
       general: '📋'
     }[report.category] || '📋';
-    
+
     return `
       <div class="report-item" onclick="openReportModal('${report.id}')">
         <div class="item-header">
@@ -635,13 +640,13 @@ function displayReports(reports) {
 }
 
 // Open report modal
-window.openReportModal = async function(reportId) {
+window.openReportModal = async function (reportId) {
   try {
     const reportDoc = await getDoc(doc(db, 'reports', reportId));
     if (!reportDoc.exists()) return;
-    
+
     const reportData = { id: reportId, ...reportDoc.data() };
-    
+
     // Get reported user info
     let reportedUserInfo = 'Unknown User';
     if (reportData.reportedUserId) {
@@ -655,7 +660,7 @@ window.openReportModal = async function(reportId) {
         console.error('Error loading user info:', error);
       }
     }
-    
+
     const modalBody = document.getElementById('reportModalBody');
     modalBody.innerHTML = `
       <div class="report-details">
@@ -710,26 +715,26 @@ window.openReportModal = async function(reportId) {
         ` : ''}
       </div>
     `;
-    
+
     document.getElementById('reportModal').classList.add('active');
-    
+
   } catch (error) {
     console.error('Error opening report modal:', error);
   }
 };
 
 // Resolve report
-window.resolveReport = async function(reportId, status) {
+window.resolveReport = async function (reportId, status) {
   try {
     await updateDoc(doc(db, 'reports', reportId), {
       status: status,
       resolvedAt: serverTimestamp(),
       resolvedBy: currentUser.uid
     });
-    
+
     closeModal('reportModal');
     loadModerationData(); // Refresh the reports list
-    
+
     console.log(`Report ${reportId} marked as ${status}`);
   } catch (error) {
     console.error('Error resolving report:', error);
@@ -737,7 +742,7 @@ window.resolveReport = async function(reportId, status) {
 };
 
 // Delete story from report context via server-side function
-window.deleteStoryFromReport = async function(storyId, reportId) {
+window.deleteStoryFromReport = async function (storyId, reportId) {
   if (!storyId) {
     alert('No story ID provided');
     return;
@@ -760,11 +765,11 @@ window.deleteStoryFromReport = async function(storyId, reportId) {
 };
 
 // Ban user
-window.banUser = async function(userId, reportId) {
+window.banUser = async function (userId, reportId) {
   if (!confirm('Are you sure you want to ban this user? This action cannot be undone.')) {
     return;
   }
-  
+
   try {
     // Update user status
     await updateDoc(doc(db, 'users', userId), {
@@ -773,10 +778,10 @@ window.banUser = async function(userId, reportId) {
       bannedBy: currentUser.uid,
       bannedReason: `Report: ${reportId}`
     });
-    
+
     // Resolve the report
     await resolveReport(reportId, 'resolved');
-    
+
     console.log(`User ${userId} has been banned`);
   } catch (error) {
     console.error('Error banning user:', error);
@@ -784,12 +789,12 @@ window.banUser = async function(userId, reportId) {
 };
 
 // Warn user
-window.warnUser = async function(userId, reportId) {
+window.warnUser = async function (userId, reportId) {
   try {
     // Add warning to user record
     const userRef = doc(db, 'users', userId);
     const userDoc = await getDoc(userRef);
-    
+
     if (userDoc.exists()) {
       const userData = userDoc.data();
       const warnings = userData.warnings || [];
@@ -798,13 +803,13 @@ window.warnUser = async function(userId, reportId) {
         reason: `Report: ${reportId}`,
         adminId: currentUser.uid
       });
-      
+
       await updateDoc(userRef, { warnings });
     }
-    
+
     // Resolve the report
     await resolveReport(reportId, 'resolved');
-    
+
     console.log(`Warning issued to user ${userId}`);
   } catch (error) {
     console.error('Error warning user:', error);
@@ -814,20 +819,20 @@ window.warnUser = async function(userId, reportId) {
 // Load analytics data
 async function loadAnalyticsData() {
   console.log('📈 Loading analytics data...');
-  
+
   try {
     // User growth chart
     await createUserGrowthChart();
-    
+
     // Activity chart
     await createActivityChart();
-    
+
     // Feature usage chart
     await createFeatureChart();
-    
+
     // Economy chart
     await createEconomyChart();
-    
+
   } catch (error) {
     console.error('Error loading analytics data:', error);
   }
@@ -836,32 +841,32 @@ async function loadAnalyticsData() {
 // Helper function to safely convert timestamps
 function safeTimestampToDate(timestamp) {
   if (!timestamp) return null;
-  
+
   // Handle Firestore Timestamp objects
   if (timestamp && typeof timestamp.toDate === 'function') {
     return timestamp.toDate();
   }
-  
+
   // Handle JavaScript Date objects
   if (timestamp instanceof Date) {
     return timestamp;
   }
-  
+
   // Handle timestamp numbers (milliseconds)
   if (typeof timestamp === 'number') {
     return new Date(timestamp);
   }
-  
+
   // Handle ISO string dates
   if (typeof timestamp === 'string') {
     return new Date(timestamp);
   }
-  
+
   // Handle objects with seconds/nanoseconds (Firestore timestamp format)
   if (timestamp && typeof timestamp === 'object' && timestamp.seconds) {
     return new Date(timestamp.seconds * 1000 + (timestamp.nanoseconds || 0) / 1000000);
   }
-  
+
   return null;
 }
 
@@ -869,13 +874,13 @@ function safeTimestampToDate(timestamp) {
 async function createUserGrowthChart() {
   const ctx = document.getElementById('userGrowthChart');
   if (!ctx) return;
-  
+
   try {
     // Get users data
     const usersSnapshot = await getDocs(
       query(collection(db, 'users'), orderBy('createdAt', 'asc'))
     );
-    
+
     // Process data for last 30 days
     const last30Days = getLast30Days();
     const growthData = last30Days.map(date => {
@@ -886,7 +891,7 @@ async function createUserGrowthChart() {
       }).length;
       return count;
     });
-    
+
     // Cumulative growth
     const cumulativeData = [];
     let total = 0;
@@ -894,11 +899,11 @@ async function createUserGrowthChart() {
       total += count;
       cumulativeData.push(total);
     });
-    
+
     if (charts.userGrowth) {
       charts.userGrowth.destroy();
     }
-    
+
     charts.userGrowth = new Chart(ctx, {
       type: 'line',
       data: {
@@ -926,7 +931,7 @@ async function createUserGrowthChart() {
         }
       }
     });
-    
+
   } catch (error) {
     console.error('Error creating user growth chart:', error);
   }
@@ -936,7 +941,7 @@ async function createUserGrowthChart() {
 async function createActivityChart() {
   const ctx = document.getElementById('activityChart');
   if (!ctx) return;
-  
+
   try {
     // Get activity data from multiple collections
     const [storiesSnapshot, chatsSnapshot, questionsSnapshot] = await Promise.all([
@@ -944,16 +949,16 @@ async function createActivityChart() {
       getDocs(collection(db, 'chats')),
       getDocs(collection(db, 'questions'))
     ]);
-    
+
     const last7Days = getLast7Days();
     const storiesData = countByDay(storiesSnapshot, last7Days);
     const chatsData = countByDay(chatsSnapshot, last7Days);
     const questionsData = countByDay(questionsSnapshot, last7Days);
-    
+
     if (charts.activity) {
       charts.activity.destroy();
     }
-    
+
     charts.activity = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -989,7 +994,7 @@ async function createActivityChart() {
         }
       }
     });
-    
+
   } catch (error) {
     console.error('Error creating activity chart:', error);
   }
@@ -999,7 +1004,7 @@ async function createActivityChart() {
 async function createFeatureChart() {
   const ctx = document.getElementById('featureChart');
   if (!ctx) return;
-  
+
   try {
     // Get feature usage data
     const [usersSnapshot, storiesSnapshot, chatsSnapshot, achievementsSnapshot] = await Promise.all([
@@ -1008,11 +1013,11 @@ async function createFeatureChart() {
       getDocs(collection(db, 'chats')),
       getDocs(collection(db, 'user_achievements'))
     ]);
-    
+
     if (charts.feature) {
       charts.feature.destroy();
     }
-    
+
     charts.feature = new Chart(ctx, {
       type: 'doughnut',
       data: {
@@ -1036,7 +1041,7 @@ async function createFeatureChart() {
         }
       }
     });
-    
+
   } catch (error) {
     console.error('Error creating feature chart:', error);
   }
@@ -1046,25 +1051,25 @@ async function createFeatureChart() {
 async function createEconomyChart() {
   const ctx = document.getElementById('economyChart');
   if (!ctx) return;
-  
+
   try {
     // Get JLios transactions
     const transactionsSnapshot = await getDocs(
       query(collection(db, 'jliosTransactions'), orderBy('createdAt', 'desc'), limit(100))
     );
-    
+
     const earnedData = [];
     const spentData = [];
     const last7Days = getLast7Days();
-    
+
     last7Days.forEach(date => {
       let earned = 0;
       let spent = 0;
-      
+
       transactionsSnapshot.forEach(doc => {
         const data = doc.data();
         const transactionDate = safeTimestampToDate(data.createdAt);
-        
+
         if (transactionDate && isSameDay(transactionDate, date)) {
           if (data.type === 'earn') {
             earned += data.amount || 0;
@@ -1073,15 +1078,15 @@ async function createEconomyChart() {
           }
         }
       });
-      
+
       earnedData.push(earned);
       spentData.push(spent);
     });
-    
+
     if (charts.economy) {
       charts.economy.destroy();
     }
-    
+
     charts.economy = new Chart(ctx, {
       type: 'line',
       data: {
@@ -1112,7 +1117,7 @@ async function createEconomyChart() {
         }
       }
     });
-    
+
   } catch (error) {
     console.error('Error creating economy chart:', error);
   }
@@ -1121,7 +1126,7 @@ async function createEconomyChart() {
 // Load users data from actual users collection
 async function loadUsersData() {
   console.log('👥 Loading users data...');
-  
+
   try {
     // Load users without complex queries to avoid index requirements
     const usersQuery = query(
@@ -1129,27 +1134,27 @@ async function loadUsersData() {
       limit(100)
     );
     const snapshot = await getDocs(usersQuery);
-    
+
     console.log('✅ Users snapshot received, count:', snapshot.size);
-    
+
     const users = [];
-    
+
     snapshot.forEach(doc => {
       users.push({
         id: doc.id,
         ...doc.data()
       });
     });
-    
+
     console.log('✅ Users processed:', users.length);
     displayUsers(users);
-    
+
   } catch (error) {
     console.error('❌ Error loading users data:', error);
     console.error('Error code:', error.code);
     console.error('Error message:', error.message);
     console.error('Full error:', error);
-    
+
     // Show detailed error to admin
     const usersList = document.getElementById('usersList');
     usersList.innerHTML = `
@@ -1172,16 +1177,16 @@ async function loadUsersData() {
 // Display users with actual app user structure
 function displayUsers(users) {
   const usersList = document.getElementById('usersList');
-  
+
   if (users.length === 0) {
     usersList.innerHTML = '<div class="loading-placeholder">No users found</div>';
     return;
   }
-  
+
   usersList.innerHTML = users.map(user => {
     const verificationIcon = user.isVerified ? '✅' : '';
     const acceptingQuestions = user.isAcceptingQuestions ? '🟢' : '🔴';
-    
+
     return `
       <div class="user-item" onclick="openUserModal('${user.id}')">
         <div class="item-header">
@@ -1207,13 +1212,13 @@ function displayUsers(users) {
 }
 
 // Open user modal
-window.openUserModal = async function(userId) {
+window.openUserModal = async function (userId) {
   try {
     const userDoc = await getDoc(doc(db, 'users', userId));
     if (!userDoc.exists()) return;
-    
+
     const userData = { id: userId, ...userDoc.data() };
-    
+
     const modalBody = document.getElementById('userModalBody');
     modalBody.innerHTML = `
       <div class="user-details">
@@ -1265,16 +1270,16 @@ window.openUserModal = async function(userId) {
         </div>
       </div>
     `;
-    
+
     document.getElementById('userModal').classList.add('active');
-    
+
   } catch (error) {
     console.error('Error opening user modal:', error);
   }
 };
 
 // Prompt to reward JLios to a user (calls server-side function via admin-api)
-window.promptRewardJLios = async function(userId) {
+window.promptRewardJLios = async function (userId) {
   const amt = prompt('Enter JLios amount to reward (numeric):');
   if (!amt) return;
   const num = Number(amt);
@@ -1298,11 +1303,11 @@ window.promptRewardJLios = async function(userId) {
 };
 
 // Ban user from modal
-window.banUserFromModal = async function(userId) {
+window.banUserFromModal = async function (userId) {
   if (!confirm('Are you sure you want to ban this user?')) {
     return;
   }
-  
+
   try {
     await updateDoc(doc(db, 'users', userId), {
       banned: true,
@@ -1310,10 +1315,10 @@ window.banUserFromModal = async function(userId) {
       bannedBy: currentUser.uid,
       bannedReason: 'Manual admin action'
     });
-    
+
     closeModal('userModal');
     loadUsersData(); // Refresh the users list
-    
+
     console.log(`User ${userId} has been banned`);
   } catch (error) {
     console.error('Error banning user:', error);
@@ -1321,21 +1326,21 @@ window.banUserFromModal = async function(userId) {
 };
 
 // Unban user
-window.unbanUser = async function(userId) {
+window.unbanUser = async function (userId) {
   if (!confirm('Are you sure you want to unban this user?')) {
     return;
   }
-  
+
   try {
     await updateDoc(doc(db, 'users', userId), {
       banned: false,
       unbannedAt: serverTimestamp(),
       unbannedBy: currentUser.uid
     });
-    
+
     closeModal('userModal');
     loadUsersData(); // Refresh the users list
-    
+
     console.log(`User ${userId} has been unbanned`);
   } catch (error) {
     console.error('Error unbanning user:', error);
@@ -1343,14 +1348,14 @@ window.unbanUser = async function(userId) {
 };
 
 // Warn user from modal
-window.warnUserFromModal = async function(userId) {
+window.warnUserFromModal = async function (userId) {
   const reason = prompt('Enter warning reason:');
   if (!reason) return;
-  
+
   try {
     const userRef = doc(db, 'users', userId);
     const userDoc = await getDoc(userRef);
-    
+
     if (userDoc.exists()) {
       const userData = userDoc.data();
       const warnings = userData.warnings || [];
@@ -1359,13 +1364,13 @@ window.warnUserFromModal = async function(userId) {
         reason: reason,
         adminId: currentUser.uid
       });
-      
+
       await updateDoc(userRef, { warnings });
     }
-    
+
     closeModal('userModal');
     loadUsersData(); // Refresh the users list
-    
+
     console.log(`Warning issued to user ${userId}`);
   } catch (error) {
     console.error('Error warning user:', error);
@@ -1373,26 +1378,26 @@ window.warnUserFromModal = async function(userId) {
 };
 
 // View user activity
-window.viewUserActivity = function(userId) {
+window.viewUserActivity = function (userId) {
   // This could open a new modal or redirect to a detailed activity page
   alert(`User activity view for ${userId} - Feature coming soon!`);
 };
 
 // Close modal
-window.closeModal = function(modalId) {
+window.closeModal = function (modalId) {
   document.getElementById(modalId).classList.remove('active');
 };
 
 // Utility functions
 function formatTimeAgo(date) {
   if (!date) return 'Unknown';
-  
+
   const now = new Date();
   const diffMs = now - date;
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
-  
+
   if (diffMins < 1) return 'Just now';
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
@@ -1454,27 +1459,27 @@ const ModerationSystem = {
   async flagSuspiciousContent() {
     try {
       console.log('🔍 Running automated content scan...');
-      
+
       // Check recent stories for inappropriate content
       const recentStories = await getDocs(query(
         collection(db, 'stories'),
         orderBy('createdAt', 'desc'),
         limit(50)
       ));
-      
+
       const suspiciousPatterns = [
         /\b(hate|kill|die|stupid|idiot)\b/i,
         /\b(sex|porn|nude|naked)\b/i,
         /\b(drugs|cocaine|weed|marijuana)\b/i,
         /\b(scam|fraud|money|cash|pay)\b/i
       ];
-      
+
       let flaggedCount = 0;
-      
+
       for (const doc of recentStories.docs) {
         const story = doc.data();
         const content = story.text || '';
-        
+
         for (const pattern of suspiciousPatterns) {
           if (pattern.test(content)) {
             // Create automated report
@@ -1495,16 +1500,16 @@ const ModerationSystem = {
           }
         }
       }
-      
+
       console.log(`🚨 Flagged ${flaggedCount} suspicious content items`);
       return flaggedCount;
-      
+
     } catch (error) {
       console.error('Error in automated content flagging:', error);
       return 0;
     }
   },
-  
+
   // Create automated report
   async createAutomatedReport(reportData) {
     try {
@@ -1521,21 +1526,21 @@ const ModerationSystem = {
         createdAt: serverTimestamp(),
         automated: true
       });
-      
+
     } catch (error) {
       console.error('Error creating automated report:', error);
     }
   },
-  
+
   // Bulk user actions
   async bulkUserAction(userIds, action, reason) {
     try {
       console.log(`🔨 Performing bulk ${action} on ${userIds.length} users`);
-      
+
       const promises = userIds.map(async (userId) => {
         const userRef = doc(db, 'users', userId);
         const updates = {};
-        
+
         switch (action) {
           case 'ban':
             updates.banned = true;
@@ -1559,9 +1564,9 @@ const ModerationSystem = {
             updates.unbannedReason = reason;
             break;
         }
-        
+
         await updateDoc(userRef, updates);
-        
+
         // Log action
         await this.logModerationAction({
           action: action,
@@ -1570,15 +1575,15 @@ const ModerationSystem = {
           adminId: currentUser.uid
         });
       });
-      
+
       await Promise.all(promises);
       console.log(`✅ Bulk ${action} completed`);
-      
+
     } catch (error) {
       console.error(`Error in bulk ${action}:`, error);
     }
   },
-  
+
   // Log moderation actions for audit trail
   async logModerationAction(actionData) {
     try {
@@ -1591,12 +1596,12 @@ const ModerationSystem = {
       console.error('Error logging moderation action:', error);
     }
   },
-  
+
   // Analyze user behavior patterns
   async analyzeUserBehavior(userId) {
     try {
       console.log(`🔍 Analyzing behavior for user: ${userId}`);
-      
+
       // Get user's stories
       const userStories = await getDocs(query(
         collection(db, 'stories'),
@@ -1604,7 +1609,7 @@ const ModerationSystem = {
         orderBy('createdAt', 'desc'),
         limit(20)
       ));
-      
+
       // Get user's questions
       const userQuestions = await getDocs(query(
         collection(db, 'questions'),
@@ -1612,34 +1617,34 @@ const ModerationSystem = {
         orderBy('createdAt', 'desc'),
         limit(20)
       ));
-      
+
       // Get reports about this user
       const reportsAboutUser = await getDocs(query(
         collection(db, 'reports'),
         where('reportedUserId', '==', userId)
       ));
-      
+
       // Calculate risk score
       let riskScore = 0;
       const reportCount = reportsAboutUser.size;
       const storyCount = userStories.size;
       const questionCount = userQuestions.size;
-      
+
       // Risk factors
       if (reportCount > 3) riskScore += 30;
       if (reportCount > 1) riskScore += 15;
       if (storyCount > 10 && questionCount === 0) riskScore += 10; // Only posting stories, not engaging
-      
+
       // Check for spam patterns
       const recentActivity = [];
       userStories.forEach(doc => recentActivity.push(doc.data()));
       userQuestions.forEach(doc => recentActivity.push(doc.data()));
-      
+
       if (recentActivity.length > 10) {
         const avgTimeBetween = this.calculateAverageTimeBetween(recentActivity);
         if (avgTimeBetween < 60000) riskScore += 25; // Less than 1 minute between posts
       }
-      
+
       return {
         userId,
         riskScore,
@@ -1649,30 +1654,30 @@ const ModerationSystem = {
         riskLevel: riskScore > 50 ? 'high' : riskScore > 25 ? 'medium' : 'low',
         recommendations: this.generateRecommendations(riskScore, reportCount)
       };
-      
+
     } catch (error) {
       console.error('Error analyzing user behavior:', error);
       return null;
     }
   },
-  
+
   calculateAverageTimeBetween(activities) {
     if (activities.length < 2) return 0;
-    
+
     const times = activities.map(a => a.createdAt?.toDate()?.getTime()).filter(Boolean);
     times.sort((a, b) => b - a); // Most recent first
-    
+
     let totalDiff = 0;
     for (let i = 0; i < times.length - 1; i++) {
       totalDiff += times[i] - times[i + 1];
     }
-    
+
     return totalDiff / (times.length - 1);
   },
-  
+
   generateRecommendations(riskScore, reportCount) {
     const recommendations = [];
-    
+
     if (riskScore > 50) {
       recommendations.push('Consider temporary ban');
       recommendations.push('Review all recent content');
@@ -1680,11 +1685,11 @@ const ModerationSystem = {
       recommendations.push('Issue warning');
       recommendations.push('Monitor closely');
     }
-    
+
     if (reportCount > 5) {
       recommendations.push('Review user interaction patterns');
     }
-    
+
     return recommendations;
   }
 };
@@ -1693,46 +1698,46 @@ const ModerationSystem = {
 window.ModerationSystem = ModerationSystem;
 
 // Security page functions
-window.loadSecurityData = function() {
-    if (!securitySystem) return;
-    
-    loadSecurityStats();
-    loadSecurityAlerts();
-    updateThreatPatterns();
+window.loadSecurityData = function () {
+  if (!securitySystem) return;
+
+  loadSecurityStats();
+  loadSecurityAlerts();
+  updateThreatPatterns();
 }
 
-window.loadSecurityStats = function() {
-    // Get security stats from security system
-    const alerts = securitySystem.securityAlerts || [];
-    const criticalAlerts = alerts.filter(alert => alert.severity === 'critical');
-    const quarantinedUsers = securitySystem.quarantinedUsers || new Set();
-    const resolvedToday = alerts.filter(alert => 
-        alert.resolved && isToday(alert.resolvedAt)
-    );
-    
-    // Update security stats display
-    updateElementText('totalAlerts', alerts.length);
-    updateElementText('criticalAlerts', criticalAlerts.length);
-    updateElementText('quarantinedUsers', quarantinedUsers.size);
-    updateElementText('resolvedToday', resolvedToday.length);
+window.loadSecurityStats = function () {
+  // Get security stats from security system
+  const alerts = securitySystem.securityAlerts || [];
+  const criticalAlerts = alerts.filter(alert => alert.severity === 'critical');
+  const quarantinedUsers = securitySystem.quarantinedUsers || new Set();
+  const resolvedToday = alerts.filter(alert =>
+    alert.resolved && isToday(alert.resolvedAt)
+  );
+
+  // Update security stats display
+  updateElementText('totalAlerts', alerts.length);
+  updateElementText('criticalAlerts', criticalAlerts.length);
+  updateElementText('quarantinedUsers', quarantinedUsers.size);
+  updateElementText('resolvedToday', resolvedToday.length);
 }
 
-window.loadSecurityAlerts = function() {
-    if (!securitySystem || !securitySystem.securityAlerts) return;
-    
-    const alertsContainer = document.getElementById('securityAlerts');
-    if (!alertsContainer) return;
-    
-    const alerts = securitySystem.securityAlerts
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, 10); // Show latest 10 alerts
-    
-    if (alerts.length === 0) {
-        alertsContainer.innerHTML = '<div class="loading-placeholder">No security alerts</div>';
-        return;
-    }
-    
-    alertsContainer.innerHTML = alerts.map(alert => `
+window.loadSecurityAlerts = function () {
+  if (!securitySystem || !securitySystem.securityAlerts) return;
+
+  const alertsContainer = document.getElementById('securityAlerts');
+  if (!alertsContainer) return;
+
+  const alerts = securitySystem.securityAlerts
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 10); // Show latest 10 alerts
+
+  if (alerts.length === 0) {
+    alertsContainer.innerHTML = '<div class="loading-placeholder">No security alerts</div>';
+    return;
+  }
+
+  alertsContainer.innerHTML = alerts.map(alert => `
         <div class="alert-item ${alert.severity}">
             <div class="alert-content">
                 <strong>${alert.type}</strong>
@@ -1747,95 +1752,95 @@ window.loadSecurityAlerts = function() {
     `).join('');
 }
 
-window.runSecurityScan = function() {
-    if (!securitySystem) {
-        alert('Security system not initialized');
-        return;
-    }
-    
-    const scanBtn = event.target;
-    scanBtn.disabled = true;
-    scanBtn.textContent = '🔄 Scanning...';
-    
-    // Run comprehensive security scan
-    securitySystem.runComprehensiveScan()
-        .then(() => {
-            loadSecurityData();
-            scanBtn.textContent = '✅ Scan Complete';
-            setTimeout(() => {
-                scanBtn.disabled = false;
-                scanBtn.textContent = '🔍 Run Security Scan';
-            }, 2000);
-        })
-        .catch(error => {
-            console.error('Security scan failed:', error);
-            scanBtn.textContent = '❌ Scan Failed';
-            setTimeout(() => {
-                scanBtn.disabled = false;
-                scanBtn.textContent = '🔍 Run Security Scan';
-            }, 2000);
-        });
-}
+window.runSecurityScan = function () {
+  if (!securitySystem) {
+    alert('Security system not initialized');
+    return;
+  }
 
-window.exportSecurityReport = function() {
-    if (!securitySystem) return;
-    
-    const report = securitySystem.generateSecurityReport();
-    const blob = new Blob([JSON.stringify(report, null, 2)], {
-        type: 'application/json'
+  const scanBtn = event.target;
+  scanBtn.disabled = true;
+  scanBtn.textContent = '🔄 Scanning...';
+
+  // Run comprehensive security scan
+  securitySystem.runComprehensiveScan()
+    .then(() => {
+      loadSecurityData();
+      scanBtn.textContent = '✅ Scan Complete';
+      setTimeout(() => {
+        scanBtn.disabled = false;
+        scanBtn.textContent = '🔍 Run Security Scan';
+      }, 2000);
+    })
+    .catch(error => {
+      console.error('Security scan failed:', error);
+      scanBtn.textContent = '❌ Scan Failed';
+      setTimeout(() => {
+        scanBtn.disabled = false;
+        scanBtn.textContent = '🔍 Run Security Scan';
+      }, 2000);
     });
-    
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `security-report-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
 }
 
-window.updateSecurityRules = function() {
-    if (!securitySystem) return;
-    
-    const confirmed = confirm('Update security rules with latest threat patterns?');
-    if (!confirmed) return;
-    
-    securitySystem.updateSecurityRules()
-        .then(() => {
-            alert('Security rules updated successfully');
-            loadSecurityData();
-        })
-        .catch(error => {
-            console.error('Failed to update security rules:', error);
-            alert('Failed to update security rules');
-        });
+window.exportSecurityReport = function () {
+  if (!securitySystem) return;
+
+  const report = securitySystem.generateSecurityReport();
+  const blob = new Blob([JSON.stringify(report, null, 2)], {
+    type: 'application/json'
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `security-report-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
-window.bulkQuarantine = function() {
-    if (!securitySystem) return;
-    
-    const confirmed = confirm('Quarantine all high-risk users? This action cannot be undone.');
-    if (!confirmed) return;
-    
-    securitySystem.bulkQuarantineHighRiskUsers()
-        .then(count => {
-            alert(`${count} high-risk users have been quarantined`);
-            loadSecurityData();
-        })
-        .catch(error => {
-            console.error('Bulk quarantine failed:', error);
-            alert('Bulk quarantine operation failed');
-        });
+window.updateSecurityRules = function () {
+  if (!securitySystem) return;
+
+  const confirmed = confirm('Update security rules with latest threat patterns?');
+  if (!confirmed) return;
+
+  securitySystem.updateSecurityRules()
+    .then(() => {
+      alert('Security rules updated successfully');
+      loadSecurityData();
+    })
+    .catch(error => {
+      console.error('Failed to update security rules:', error);
+      alert('Failed to update security rules');
+    });
 }
 
-window.updateThreatPatterns = function() {
-    const patternsContainer = document.getElementById('threatPatterns');
-    if (!patternsContainer || !securitySystem) return;
-    
-    const patterns = securitySystem.getThreatPatternStats();
-    
-    patternsContainer.innerHTML = Object.entries(patterns).map(([type, count]) => `
+window.bulkQuarantine = function () {
+  if (!securitySystem) return;
+
+  const confirmed = confirm('Quarantine all high-risk users? This action cannot be undone.');
+  if (!confirmed) return;
+
+  securitySystem.bulkQuarantineHighRiskUsers()
+    .then(count => {
+      alert(`${count} high-risk users have been quarantined`);
+      loadSecurityData();
+    })
+    .catch(error => {
+      console.error('Bulk quarantine failed:', error);
+      alert('Bulk quarantine operation failed');
+    });
+}
+
+window.updateThreatPatterns = function () {
+  const patternsContainer = document.getElementById('threatPatterns');
+  if (!patternsContainer || !securitySystem) return;
+
+  const patterns = securitySystem.getThreatPatternStats();
+
+  patternsContainer.innerHTML = Object.entries(patterns).map(([type, count]) => `
         <div class="pattern-item">
             <span class="pattern-type">${type}</span>
             <span class="pattern-count">${count} detected today</span>
@@ -1843,33 +1848,33 @@ window.updateThreatPatterns = function() {
     `).join('');
 }
 
-window.generateSecurityReport = function() {
-    if (!securitySystem) return;
-    
-    const report = securitySystem.generateComprehensiveReport();
-    console.log('Security Report Generated:', report);
-    alert('Security report generated. Check console for details.');
+window.generateSecurityReport = function () {
+  if (!securitySystem) return;
+
+  const report = securitySystem.generateComprehensiveReport();
+  console.log('Security Report Generated:', report);
+  alert('Security report generated. Check console for details.');
 }
 
-window.reviewAuditLog = function() {
-    // This would open a detailed audit log view
-    alert('Audit log review feature - would open detailed audit interface');
+window.reviewAuditLog = function () {
+  // This would open a detailed audit log view
+  alert('Audit log review feature - would open detailed audit interface');
 }
 
 // Helper function to update element text safely
 function updateElementText(elementId, text) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = text;
-    }
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.textContent = text;
+  }
 }
 
 function isToday(timestamp) {
-    const today = new Date();
-    const date = new Date(timestamp);
-    return date.toDateString() === today.toDateString();
+  const today = new Date();
+  const date = new Date(timestamp);
+  return date.toDateString() === today.toDateString();
 }
 
 function formatTimestamp(timestamp) {
-    return new Date(timestamp).toLocaleString();
+  return new Date(timestamp).toLocaleString();
 }

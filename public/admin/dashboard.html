@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JLIO Admin Dashboard</title>
     <link rel="icon" type="image/png" href="../assets/images/favicon.png">
     <link rel="stylesheet" href="../assets/admin/admin.css">
-    <link rel="stylesheet" href="../assets/admin/admin.css">
+    <link rel="stylesheet" href="../assets/admin/admin-ui-improvements.css">
 </head>
+
 <body class="dashboard-page">
     <!-- Navigation Header -->
     <nav class="admin-nav">
@@ -15,17 +17,18 @@
             <img src="../assets/images/logo.png" alt="JLIO" class="nav-logo">
             <h1>JLIO Admin</h1>
         </div>
-        
+
         <div class="nav-center">
             <div class="nav-tabs">
                 <button class="nav-tab" data-page="overview">📊 Overview</button>
+                <button class="nav-tab" data-page="stories">📖 Stories</button>
                 <button class="nav-tab" data-page="moderation">🛡️ Moderation</button>
                 <button class="nav-tab" data-page="security">🔒 Security</button>
                 <button class="nav-tab" data-page="analytics">📈 Analytics</button>
                 <button class="nav-tab" data-page="users">👥 Users</button>
             </div>
         </div>
-        
+
         <div class="nav-right">
             <div class="admin-info">
                 <span id="adminName">Admin</span>
@@ -45,7 +48,7 @@
                     Live Data
                 </div>
             </div>
-            
+
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">👥</div>
@@ -55,7 +58,7 @@
                         <span class="stat-change" id="usersChange">+0 today</span>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-icon">💬</div>
                     <div class="stat-content">
@@ -64,7 +67,7 @@
                         <span class="stat-change" id="chatsChange">+0 today</span>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-icon">📝</div>
                     <div class="stat-content">
@@ -73,7 +76,7 @@
                         <span class="stat-change" id="storiesChange">+0 today</span>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-icon">🚨</div>
                     <div class="stat-content">
@@ -83,7 +86,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="dashboard-grid">
                 <div class="dashboard-card">
                     <h3>Recent Activity</h3>
@@ -91,7 +94,7 @@
                         <div class="activity-item loading">Loading activities...</div>
                     </div>
                 </div>
-                
+
                 <div class="dashboard-card">
                     <h3>Quick Actions</h3>
                     <div class="quick-actions">
@@ -106,6 +109,77 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Stories Management Page -->
+        <div class="admin-page" id="stories-page">
+            <div class="page-header">
+                <h2>Stories Management</h2>
+                <div class="stories-controls">
+                    <input type="text" id="storySearch" placeholder="Search stories by content...">
+                    <select id="communityFilter">
+                        <option value="all">All Communities</option>
+                        <option value="global">Global</option>
+                        <option value="local">Local</option>
+                    </select>
+                    <select id="tagFilter">
+                        <option value="all">All Tags</option>
+                        <!-- Tags will be populated dynamically -->
+                    </select>
+                    <select id="sortFilter">
+                        <option value="recent">Most Recent</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="most_replies">Most Replies</option>
+                        <option value="most_reactions">Most Reactions</option>
+                    </select>
+                    <button class="action-btn" onclick="refreshStories()">🔄 Refresh</button>
+                    <button class="action-btn danger" onclick="bulkDeleteStories()" id="bulkDeleteBtn"
+                        style="display:none;">
+                        🗑️ Delete Selected (<span id="selectedCount">0</span>)
+                    </button>
+                </div>
+            </div>
+
+            <div class="stories-stats">
+                <div class="stat-card small">
+                    <div class="stat-value" id="totalStoriesCount">0</div>
+                    <div class="stat-label">Total Stories</div>
+                </div>
+                <div class="stat-card small">
+                    <div class="stat-value" id="globalStoriesCount">0</div>
+                    <div class="stat-label">Global Stories</div>
+                </div>
+                <div class="stat-card small">
+                    <div class="stat-value" id="todayStoriesCount">0</div>
+                    <div class="stat-label">Today</div>
+                </div>
+                <div class="stat-card small">
+                    <div class="stat-value" id="repliesCount">0</div>
+                    <div class="stat-label">Total Replies</div>
+                </div>
+            </div>
+
+            <div class="bulk-actions-bar" id="bulkActionsBar" style="display:none;">
+                <label>
+                    <input type="checkbox" id="selectAllStories" onchange="toggleSelectAll()">
+                    Select All
+                </label>
+                <span id="selectionInfo">0 selected</span>
+                <button class="action-btn" onclick="clearSelection()">Clear Selection</button>
+            </div>
+
+            <div class="stories-container">
+                <div class="stories-list" id="storiesList">
+                    <div class="loading-placeholder">Loading stories...</div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="storiesPagination" style="display:none;">
+                <button onclick="loadStoriesPage('prev')">← Previous</button>
+                <span id="pageInfo">Page 1</span>
+                <button onclick="loadStoriesPage('next')">Next →</button>
             </div>
         </div>
 
@@ -150,7 +224,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="moderation-stats">
                 <div class="stat-card small">
                     <div class="stat-value" id="totalReports">0</div>
@@ -169,7 +243,7 @@
                     <div class="stat-label">Resolved Today</div>
                 </div>
             </div>
-            
+
             <div class="reports-container">
                 <div class="reports-list" id="reportsList">
                     <div class="loading-placeholder">Loading reports...</div>
@@ -193,7 +267,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="security-stats">
                 <div class="stat-card small">
                     <div class="stat-value" id="totalAlerts">0</div>
@@ -212,7 +286,7 @@
                     <div class="stat-label">Resolved Today</div>
                 </div>
             </div>
-            
+
             <div class="security-grid">
                 <div class="security-card">
                     <h3>Recent Security Alerts</h3>
@@ -220,7 +294,7 @@
                         <div class="loading-placeholder">Loading security alerts...</div>
                     </div>
                 </div>
-                
+
                 <div class="security-card">
                     <h3>Threat Patterns</h3>
                     <div class="threat-patterns" id="threatPatterns">
@@ -239,7 +313,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="security-actions">
                 <h3>Quick Security Actions</h3>
                 <div class="action-grid">
@@ -271,23 +345,23 @@
                     </select>
                 </div>
             </div>
-            
+
             <div class="analytics-grid">
                 <div class="chart-card">
                     <h3>User Growth</h3>
                     <canvas id="userGrowthChart"></canvas>
                 </div>
-                
+
                 <div class="chart-card">
                     <h3>Daily Activity</h3>
                     <canvas id="activityChart"></canvas>
                 </div>
-                
+
                 <div class="chart-card">
                     <h3>Feature Usage</h3>
                     <canvas id="featureChart"></canvas>
                 </div>
-                
+
                 <div class="chart-card">
                     <h3>JLios Economy</h3>
                     <canvas id="economyChart"></canvas>
@@ -309,7 +383,7 @@
                     </select>
                 </div>
             </div>
-            
+
             <div class="users-container">
                 <div class="users-list" id="usersList">
                     <div class="loading-placeholder">Loading users...</div>
@@ -343,8 +417,36 @@
         </div>
     </div>
 
+    <div class="modal" id="storyModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Story Details</h3>
+                <button class="modal-close" onclick="closeModal('storyModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="storyModalBody">
+                <!-- Story details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Keyboard Shortcuts Hint -->
+    <div class="keyboard-hint" id="keyboardHint">
+        <strong>⌨️ Keyboard Shortcuts:</strong><br>
+        <kbd>?</kbd> Show/hide hints &nbsp;
+        <kbd>Esc</kbd> Close modals &nbsp;
+        <kbd>Del</kbd> Delete selected
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="../assets/admin/dashboard.js"></script>
     <script type="module" src="../assets/admin/admin-api.js"></script>
+    <script type="module" src="../assets/admin/stories-management.js"></script>
+    <script type="module" src="../assets/admin/keyboard-shortcuts.js"></script>
 </body>
+
 </html>
