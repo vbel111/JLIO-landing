@@ -662,6 +662,8 @@ window.openReportModal = async function (reportId) {
     }
 
     const modalBody = document.getElementById('reportModalBody');
+    // Store reportId in modal body for access by action functions
+    modalBody.setAttribute('data-report-id', reportData.id);
     modalBody.innerHTML = `
       <div class="report-details">
         <div class="detail-section">
@@ -788,32 +790,69 @@ window.banUser = async function (userId, reportId) {
   }
 };
 
-// Warn user
-window.warnUser = async function (userId, reportId) {
-  try {
-    // Add warning to user record
-    const userRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userRef);
 
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      const warnings = userData.warnings || [];
-      warnings.push({
-        date: serverTimestamp(),
-        reason: `Report: ${reportId}`,
-        adminId: currentUser.uid
-      });
+// Warn user (updated to use Cloud Function with notification)
+window.warnUserFromModal = async function (userId) {
+  // Prompt admin for warning reason
+  const reason = prompt('Enter warning reason (this will be sent to the user):');
 
-      await updateDoc(userRef, { warnings });
-    }
-
-    // Resolve the report
-    await resolveReport(reportId, 'resolved');
-
-    console.log(`Warning issued to user ${userId}`);
-  } catch (error) {
-    console.error('Error warning user:', error);
+  if (!reason || reason.trim() === '') {
+    alert('Warning reason is required');
+    return;
   }
+
+  // Get reportId from the current modal context
+  const reportModalBody = document.getElementById('reportModalBody');
+  const reportId = reportModalBody?.getAttribute('data-report-id');
+
+  if (!reportId) {
+    console.error('No report ID found');
+    alert('Error: Could not find report ID');
+    return;
+  }
+
+  if (!confirm(`Warn user with reason: "${reason}"?\n\nThe user will receive a push notification.`)) {
+    return;
+  }
+
+  try {
+    // Show loading
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
+    // Call Cloud Function
+    const moderationWarnUser = httpsCallable(functions, 'moderationWarnUser');
+    const result = await moderationWarnUser({
+      userId: userId,
+      reportId: reportId,
+      reason: reason.trim()
+    });
+
+    // Hide loading
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
+
+    console.log('✅ Warning issued:', result.data);
+
+    alert(`✅ User warned successfully!\n\nWarning sent: "${reason}"\nTotal warnings: ${result.data.warningCount}\nNotification sent: ${result.data.notificationSent ? 'Yes' : 'No'}`);
+
+    // Close modal and refresh
+    closeModal('reportModal');
+    loadModerationData();
+
+  } catch (error) {
+    // Hide loading
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
+
+    console.error('❌ Error warning user:', error);
+    alert(`Failed to warn user: ${error.message || 'Unknown error'}`);
+  }
+};
+
+// Legacy warnUser function (kept for compatibility)
+window.warnUser = async function (userId, reportId) {
+  console.warn('⚠️ warnUser() is deprecated, use warnUserFromModal() instead');
+  await warnUserFromModal(userId);
 };
 
 // Load analytics data
