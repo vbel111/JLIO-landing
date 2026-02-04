@@ -10,16 +10,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Playwrite+NZ:wght@100..400&display=swap" rel="stylesheet">
     
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="Ask me anything on Jlio!">
-    <meta property="og:description" content="Send an anonymous question and get a thoughtful answer">
+    <meta property="og:title" content="Ask me anything on Jlio!" id="ogTitle">
+    <meta property="og:description" content="Send an anonymous question and get a thoughtful answer" id="ogDescription">
         <meta property="og:image" content="/assets/images/og-image.png">
     <meta property="og:type" content="website">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Ask me anything on Jlio!">
-    <meta name="twitter:description" content="Send an anonymous question and get a thoughtful answer">
+    <meta name="twitter:title" content="Ask me anything on Jlio!" id="twitterTitle">
+    <meta name="twitter:description" content="Send an anonymous question and get a thoughtful answer" id="twitterDescription">
         <meta name="twitter:image" content="/assets/images/og-image.png">
+    
+    <script>
+        // Update meta tags for custom questions
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const customQuestionText = urlParams.get('qt') || urlParams.get('customQuestionText');
+            
+            if (customQuestionText) {
+                const decodedQuestion = decodeURIComponent(customQuestionText);
+                const ogTitle = document.getElementById('ogTitle');
+                const ogDescription = document.getElementById('ogDescription');
+                const twitterTitle = document.getElementById('twitterTitle');
+                const twitterDescription = document.getElementById('twitterDescription');
+                const pageTitle = document.querySelector('title');
+                
+                if (ogTitle) ogTitle.setAttribute('content', decodedQuestion);
+                if (ogDescription) ogDescription.setAttribute('content', 'Tap to answer this question anonymously on Jlio');
+                if (twitterTitle) twitterTitle.setAttribute('content', decodedQuestion);
+                if (twitterDescription) twitterDescription.setAttribute('content', 'Tap to answer this question anonymously on Jlio');
+                if (pageTitle) pageTitle.textContent = decodedQuestion + ' - Jlio';
+            }
+        })();
+    </script>
     
         <link rel="stylesheet" href="/assets/styles.css">
         <link rel="stylesheet" href="/assets/footer.css">
