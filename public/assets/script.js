@@ -1,7 +1,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { addDoc, collection, doc, getDoc, getDocs, getFirestore, query, serverTimestamp, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-// Firebase configuration - replace with your config
+
 const firebaseConfig = {
 	apiKey: "AIzaSyBgu6wGpsomoC9r44QC0aBWqUFjwk8yRZI",
 	authDomain: "jlio-de9c4.firebaseapp.com",
@@ -22,7 +22,7 @@ let username = 'Someone';
 let userId = null;
 let usernameParam = null;
 
-// Priority 1: Check query parameter ?user=username (from Vercel rewrite)
+// Priority 1: Check query parameter ?user=username 
 usernameParam = urlParams.get('user');
 
 // Priority 2: Check for direct userId query params
@@ -30,7 +30,7 @@ if (!usernameParam) {
   userId = urlParams.get('uid') || urlParams.get('userId');
 }
 
-// Priority 3: Extract from URL path as fallback (legacy support)
+// Priority 3: Extract from URL path as fallback 
 // Only use this if we don't have a query param
 if (!usernameParam && !userId) {
   const pathparts = window.location.pathname.split('/ask/');
@@ -98,7 +98,7 @@ async function fetchAndDisplayProfile() {
 			if (data.avatar) {
 				userAvatar.src = data.avatar;
 			} else {
-				userAvatar.src = '/assets/images/logo.png';
+				userAvatar.src = '/assets/images/jlioLogo.png';
 			}
 			// Show/hide accepting questions
 			if (data.isAcceptingQuestions === false) {
@@ -113,7 +113,7 @@ async function fetchAndDisplayProfile() {
 		} else {
 			console.log('No user document found');
 			profileUsername.textContent = '@unknown';
-			userAvatar.src = '/assets/images/logo.png';
+		userAvatar.src = '/assets/images/jlioLogo.png';
 			document.getElementById('questionForm').style.display = 'none';
 			document.getElementById('errorMessage').style.display = 'block';
 			document.getElementById('errorMessage').textContent = '❌ User not found.';
@@ -121,7 +121,7 @@ async function fetchAndDisplayProfile() {
 	} catch (e) {
 		console.error('Error loading profile:', e);
 		profileUsername.textContent = '@unknown';
-		userAvatar.src = '/assets/images/logo.png';
+		userAvatar.src = '/assets/images/jlioLogo.png';
 		document.getElementById('questionForm').style.display = 'none';
 		document.getElementById('errorMessage').style.display = 'block';
 		document.getElementById('errorMessage').textContent = '❌ Error loading user profile.';
