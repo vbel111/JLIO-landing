@@ -1,8 +1,12 @@
 {
   "rewrites": [
     {
+      "source": "/ask.html",
+      "destination": "/api/ask"
+    },
+    {
       "source": "/ask/:username",
-      "destination": "/ask.html?user=:username"
+      "destination": "/api/ask?user=:username"
     }
   ],
   "headers": [
