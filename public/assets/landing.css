@@ -22,6 +22,7 @@
 body.landing {
   background: linear-gradient(135deg, var(--grad-1), var(--grad-2) 60%, var(--grad-3));
   color: #222;
+  font-family: "Playwrite NZ", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .landing-hero {
