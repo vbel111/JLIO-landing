@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "N62GU9V2QY.com.jlio.app",
+        "paths": [ "/story/*" ]
+      }
+    ]
+  }
+}
