@@ -7,9 +7,26 @@
     {
       "source": "/ask/:username",
       "destination": "/api/ask?user=:username"
+    },
+    {
+      "source": "/story/:id",
+      "destination": "/story/index.html"
     }
   ],
   "headers": [
+    {
+      "source": "/.well-known/(.*)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
