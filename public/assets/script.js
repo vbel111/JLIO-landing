@@ -50,10 +50,6 @@ const profileHeader = document.getElementById('profileHeader');
 const userAvatar = document.getElementById('userAvatar');
 const profileUsername = document.getElementById('profileUsername');
 const profileLoading = document.getElementById('profileLoading');
-const questionInput = document.getElementById('questionText');
-const charCounter = document.getElementById('charCounter');
-const submitBtn = document.getElementById('submitBtn');
-const loadingEl = document.getElementById('loading');
 
 async function fetchAndDisplayProfile() {
 	profileLoading.style.display = 'block';
@@ -170,6 +166,10 @@ async function maybeLoadCustomQuestion() {
 }
 
 maybeLoadCustomQuestion();
+
+// Character counter
+const questionInput = document.getElementById('questionText');
+const charCounter = document.getElementById('charCounter');
 
 function updateCharCounter() {
 	const length = questionInput.value.length;
@@ -430,11 +430,9 @@ document.getElementById('questionForm').addEventListener('submit', async (e) => 
 	if (!questionText) return;
 
 	// Show loading state
-	loadingEl?.style && (loadingEl.style.display = 'block');
-	submitBtn.disabled = true;
-	submitBtn.textContent = 'Sending...';
+	document.getElementById('loading')?.style && (document.getElementById('loading').style.display = 'block');
+	document.getElementById('questionForm').style.display = 'none';
 	document.getElementById('errorMessage').style.display = 'none';
-	document.getElementById('successMessage').style.display = 'none';
 
 	try {
 		// Fetch recipient profile again to ensure up-to-date info
@@ -484,20 +482,17 @@ document.getElementById('questionForm').addEventListener('submit', async (e) => 
 		});
 
 		// Show success message
-		loadingEl?.style && (loadingEl.style.display = 'none');
+		document.getElementById('loading')?.style && (document.getElementById('loading').style.display = 'none');
 		document.getElementById('successMessage').style.display = 'block';
 		// Reset form
 		questionInput.value = '';
 		updateCharCounter();
-		submitBtn.textContent = 'Send anonymously';
-		submitBtn.disabled = false;
 	} catch (error) {
 		console.error('Error submitting question:', error);
-		loadingEl?.style && (loadingEl.style.display = 'none');
+		document.getElementById('loading')?.style && (document.getElementById('loading').style.display = 'none');
+		document.getElementById('questionForm').style.display = 'block';
 		document.getElementById('errorMessage').style.display = 'block';
 		document.getElementById('errorMessage').textContent = '❌ Unable to send question. This user may not be accepting questions.';
-		submitBtn.textContent = 'Send anonymously';
-		submitBtn.disabled = false;
 	}
 });
 
