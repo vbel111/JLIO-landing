@@ -44,68 +44,73 @@
         })();
     </script>
     
-        <link rel="stylesheet" href="/assets/styles.css">
-        <link rel="stylesheet" href="/assets/footer.css">
+    <link rel="stylesheet" href="/assets/styles.css">
+    <link rel="stylesheet" href="/assets/ask-page.css">
+    <link rel="stylesheet" href="/assets/footer.css">
 </head>
-<body>
-        <div class="container">
-                <!-- Header (Top Bar) -->
-                <div class="top-bar">
-                        <button class="icon-btn close-btn" title="Close" aria-label="Close" onclick="window.close()">❌</button>
-                        <div class="top-title">tap to reply</div>
-                        <button class="icon-btn refresh-btn" title="Refresh" aria-label="Refresh" onclick="window.location.reload()">🔄</button>
-                </div>
+<body class="ask-body">
+    <main class="ask-main">
+        <div class="container ask-container">
+            <div class="top-bar">
+                <button class="icon-btn close-btn" title="Go back" aria-label="Go back" onclick="window.history.back()">←</button>
+                <div class="top-title">tap to reply</div>
+                <button class="icon-btn refresh-btn" title="Refresh" aria-label="Refresh" onclick="window.location.reload()">↻</button>
+            </div>
 
-                <!-- Question Card -->
-                <form class="question-card" id="questionForm" autocomplete="off">
+            <section class="ask-intro">
+                <h1 class="ask-title">Ask anonymously</h1>
+                <p class="ask-subtitle">Your message is sent without your identity.</p>
+            </section>
+
+            <form class="question-card" id="questionForm" autocomplete="off">
             <div class="card-header" id="profileHeader">
                 <img src="/assets/images/jlioLogo.png" alt="User Avatar" class="user-avatar" id="userAvatar">
                 <span class="prompt-text" id="profileUsername">@someone</span>
             </div>
-                        <div class="profile-loading" id="profileLoading" style="display:none; text-align:center; margin-bottom:10px; color:#888;">Loading profile…</div>
-                        <div class="card-body">
-                                <!-- Custom question banner (shown when a custom question link is used) -->
-                                <div id="customQuestionBanner" class="custom-question-banner">
-                                        <div class="custom-question-label">💬 Custom Question</div>
-                                        <div id="customQuestionText" class="custom-question-text">Example custom question text</div>
-                                </div>
-
-                                <textarea class="dark-textbox" id="questionText" name="questionText" placeholder="tap to reply…" maxlength="250" required></textarea>
-                                <div class="char-counter" id="charCounter">0/250</div>
-                        </div>
-                        <div class="card-footer">
-                                <div class="example-question" id="exampleQuestion" tabindex="0" role="button" aria-label="Get a random example question">
-                                        <span class="dice-icon">🎲</span>
-                                        <span class="example-text" id="exampleText">Try: "What's your favorite memory?"</span>
-                                </div>
-                                <button type="submit" class="submit-btn" id="submitBtn">Send</button>
-                        </div>
-                        <div class="status-message">
-                                <div class="success-message" id="successMessage" style="display:none;">✅ Your question was sent anonymously!</div>
-                                <div class="error-message" id="errorMessage" style="display:none;">❌ Something went wrong. Please try again.</div>
-                        </div>
-                </form>
+            <div class="profile-loading" id="profileLoading" style="display:none; text-align:center; margin-bottom:10px; color:#888;">Loading profile...</div>
+            <div class="card-body">
+                <div id="customQuestionBanner" class="custom-question-banner">
+                    <div class="custom-question-label">💬 Custom Question</div>
+                    <div id="customQuestionText" class="custom-question-text">Example custom question text</div>
                 </div>
 
-                <!-- Footer: App Download Encouragement -->
-                <footer class="footer">
-                        <div class="footer-content">
-                                <div class="footer-nav-small">
-                                        <a href="/safety.html">Safety & Policies</a>
-                                        <span>•</span>
-                                        <a href="/index.html">About</a>
-                                </div>
-                                <div class="store-links">
-                                        <a href="https://play.google.com/store/apps/details?id=com.jlio.app&pcampaignid=web_share" target="_blank" rel="noopener" class="store-btn">
-                                                <img src="/assets/images/play-store-badge.png" alt="Get it on Google Play" class="store-icon" />
-                                        </a>
-                                        <a href="https://apps.apple.com/us/app/jlio/id6756235507" target="_blank" rel="noopener" class="store-btn">
-                                                <img src="/assets/images/app-store-badge.png" alt="Download on the App Store" class="store-icon" />
-                                        </a>
-                                </div>
-                        </div>
-                </footer>
+                <textarea class="dark-textbox" id="questionText" name="questionText" placeholder="tap to reply..." maxlength="250" required></textarea>
+                <div class="char-counter" id="charCounter">0/250</div>
+            </div>
+            <div class="card-footer">
+                <div class="example-question" id="exampleQuestion" tabindex="0" role="button" aria-label="Get a random example question">
+                    <span class="dice-icon">🎲</span>
+                    <span class="example-text" id="exampleText">Try: "What's your favorite memory?"</span>
+                </div>
+                <button type="submit" class="submit-btn" id="submitBtn">Send</button>
+            </div>
+            <div class="status-message">
+                <div class="loading-message" id="loading" style="display:none;">Sending...</div>
+                <div class="success-message" id="successMessage" style="display:none;">✅ Your question was sent anonymously!</div>
+                <div class="error-message" id="errorMessage" style="display:none;">❌ Something went wrong. Please try again.</div>
+            </div>
+            </form>
+        </div>
+    </main>
 
-        <script type="module" src="/assets/script.js"></script>
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-nav-small">
+                <a href="/safety.html">Safety & Policies</a>
+                <span>•</span>
+                <a href="/index.html">About</a>
+            </div>
+            <div class="store-links">
+                <a href="https://play.google.com/store/apps/details?id=com.jlio.app&pcampaignid=web_share" target="_blank" rel="noopener" class="store-btn">
+                    <img src="/assets/images/play-store-badge.png" alt="Get it on Google Play" class="store-icon" />
+                </a>
+                <a href="https://apps.apple.com/us/app/jlio/id6756235507" target="_blank" rel="noopener" class="store-btn">
+                    <img src="/assets/images/app-store-badge.png" alt="Download on the App Store" class="store-icon" />
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="/assets/script.js"></script>
 </body>
 </html>

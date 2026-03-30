@@ -50,6 +50,12 @@ const profileHeader = document.getElementById('profileHeader');
 const userAvatar = document.getElementById('userAvatar');
 const profileUsername = document.getElementById('profileUsername');
 const profileLoading = document.getElementById('profileLoading');
+const questionInput = document.getElementById('questionText');
+const charCounter = document.getElementById('charCounter');
+const questionForm = document.getElementById('questionForm');
+const loadingMessage = document.getElementById('loading');
+const successMessage = document.getElementById('successMessage');
+const errorMessage = document.getElementById('errorMessage');
 
 async function fetchAndDisplayProfile() {
 	profileLoading.style.display = 'block';
@@ -166,10 +172,6 @@ async function maybeLoadCustomQuestion() {
 }
 
 maybeLoadCustomQuestion();
-
-// Character counter
-const questionInput = document.getElementById('questionText');
-const charCounter = document.getElementById('charCounter');
 
 function updateCharCounter() {
 	const length = questionInput.value.length;
@@ -424,15 +426,15 @@ async function getIpGeolocation() {
 }
 
 // Form submission
-document.getElementById('questionForm').addEventListener('submit', async (e) => {
+questionForm.addEventListener('submit', async (e) => {
 	e.preventDefault();
 	const questionText = questionInput.value.trim();
 	if (!questionText) return;
 
 	// Show loading state
-	document.getElementById('loading')?.style && (document.getElementById('loading').style.display = 'block');
-	document.getElementById('questionForm').style.display = 'none';
-	document.getElementById('errorMessage').style.display = 'none';
+	if (loadingMessage?.style) loadingMessage.style.display = 'block';
+	errorMessage.style.display = 'none';
+	successMessage.style.display = 'none';
 
 	try {
 		// Fetch recipient profile again to ensure up-to-date info
@@ -482,23 +484,22 @@ document.getElementById('questionForm').addEventListener('submit', async (e) => 
 		});
 
 		// Show success message
-		document.getElementById('loading')?.style && (document.getElementById('loading').style.display = 'none');
-		document.getElementById('successMessage').style.display = 'block';
+		if (loadingMessage?.style) loadingMessage.style.display = 'none';
+		successMessage.style.display = 'block';
 		// Reset form
 		questionInput.value = '';
 		updateCharCounter();
 	} catch (error) {
 		console.error('Error submitting question:', error);
-		document.getElementById('loading')?.style && (document.getElementById('loading').style.display = 'none');
-		document.getElementById('questionForm').style.display = 'block';
-		document.getElementById('errorMessage').style.display = 'block';
-		document.getElementById('errorMessage').textContent = '❌ Unable to send question. This user may not be accepting questions.';
+		if (loadingMessage?.style) loadingMessage.style.display = 'none';
+		errorMessage.style.display = 'block';
+		errorMessage.textContent = '❌ Unable to send question. This user may not be accepting questions.';
 	}
 });
 
 // Handle missing user ID
 if (!userId) {
-	document.getElementById('questionForm').style.display = 'none';
-	document.getElementById('errorMessage').style.display = 'block';
-	document.getElementById('errorMessage').textContent = '❌ Invalid link. Please make sure you have the correct URL.';
+	questionForm.style.display = 'none';
+	errorMessage.style.display = 'block';
+	errorMessage.textContent = '❌ Invalid link. Please make sure you have the correct URL.';
 }
