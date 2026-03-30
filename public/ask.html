@@ -5,28 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ask a Question - Jlio</title>
     <link rel="icon" type="image/png" href="/assets/images/jlioLogo.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+NZ:wght@100..400&display=swap" rel="stylesheet">
-    
+    <meta name="theme-color" content="#6f45ff">
+
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="Ask me anything on Jlio!" id="ogTitle">
     <meta property="og:description" content="Send an anonymous question and get a thoughtful answer" id="ogDescription">
-        <meta property="og:image" content="/assets/images/og-image.png">
+    <meta property="og:image" content="/assets/images/og-image.png">
     <meta property="og:type" content="website">
-    
+
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Ask me anything on Jlio!" id="twitterTitle">
     <meta name="twitter:description" content="Send an anonymous question and get a thoughtful answer" id="twitterDescription">
-        <meta name="twitter:image" content="/assets/images/og-image.png">
-    
+    <meta name="twitter:image" content="/assets/images/og-image.png">
+
     <script>
         // Update meta tags for custom questions
         (function() {
             const urlParams = new URLSearchParams(window.location.search);
             const customQuestionText = urlParams.get('qt') || urlParams.get('customQuestionText');
-            
+
             if (customQuestionText) {
                 const decodedQuestion = decodeURIComponent(customQuestionText);
                 const ogTitle = document.getElementById('ogTitle');
@@ -34,7 +32,7 @@
                 const twitterTitle = document.getElementById('twitterTitle');
                 const twitterDescription = document.getElementById('twitterDescription');
                 const pageTitle = document.querySelector('title');
-                
+
                 if (ogTitle) ogTitle.setAttribute('content', decodedQuestion);
                 if (ogDescription) ogDescription.setAttribute('content', 'Tap to answer this question anonymously on Jlio');
                 if (twitterTitle) twitterTitle.setAttribute('content', decodedQuestion);
@@ -43,69 +41,95 @@
             }
         })();
     </script>
-    
-        <link rel="stylesheet" href="/assets/styles.css">
-        <link rel="stylesheet" href="/assets/footer.css">
+
+    <link rel="stylesheet" href="/assets/ask.css">
+    <link rel="stylesheet" href="/assets/footer.css">
 </head>
 <body>
-        <div class="container">
-                <!-- Header (Top Bar) -->
-                <div class="top-bar">
-                        <button class="icon-btn close-btn" title="Close" aria-label="Close" onclick="window.close()">❌</button>
-                        <div class="top-title">tap to reply</div>
-                        <button class="icon-btn refresh-btn" title="Refresh" aria-label="Refresh" onclick="window.location.reload()">🔄</button>
+    <main class="ask-page">
+        <div class="bg-blur bg-blur-1" aria-hidden="true"></div>
+        <div class="bg-blur bg-blur-2" aria-hidden="true"></div>
+
+        <section class="ask-shell">
+            <header class="ask-header">
+                <button class="icon-btn ghost-btn" title="Go back" aria-label="Go back" onclick="window.history.back()">
+                    <span aria-hidden="true">&#8592;</span>
+                </button>
+                <a href="/index.html" class="brand">
+                    <img src="/assets/images/jlioLogo.png" alt="Jlio logo" class="brand-logo">
+                    <span class="brand-name">Jlio</span>
+                </a>
+                <button class="icon-btn ghost-btn" title="Refresh" aria-label="Refresh" onclick="window.location.reload()">
+                    <span aria-hidden="true">&#10227;</span>
+                </button>
+            </header>
+
+            <form class="question-card" id="questionForm" autocomplete="off">
+                <div class="card-headline">
+                    <p class="eyebrow">Anonymous message</p>
+                    <h1 class="headline">Drop your question</h1>
+                    <p class="subhead">Replies stay private until they are posted.</p>
                 </div>
 
-                <!-- Question Card -->
-                <form class="question-card" id="questionForm" autocomplete="off">
-            <div class="card-header" id="profileHeader">
-                <img src="/assets/images/jlioLogo.png" alt="User Avatar" class="user-avatar" id="userAvatar">
-                <span class="prompt-text" id="profileUsername">@someone</span>
+                <div class="profile-chip" id="profileHeader">
+                    <img src="/assets/images/jlioLogo.png" alt="User Avatar" class="user-avatar" id="userAvatar">
+                    <div class="profile-meta">
+                        <span class="profile-label">Sending to</span>
+                        <span class="prompt-text" id="profileUsername">@someone</span>
+                    </div>
+                </div>
+
+                <div class="profile-loading" id="profileLoading">Loading profile...</div>
+
+                <div class="card-body">
+                    <div id="customQuestionBanner" class="custom-question-banner">
+                        <div class="custom-question-label">Prompt from this link</div>
+                        <div id="customQuestionText" class="custom-question-text">Example custom question text</div>
+                    </div>
+
+                    <label for="questionText" class="sr-only">Type your question</label>
+                    <textarea class="dark-textbox" id="questionText" name="questionText" placeholder="Type your anonymous message..." maxlength="250" required></textarea>
+
+                    <div class="helper-row">
+                        <div class="example-question" id="exampleQuestion" tabindex="0" role="button" aria-label="Get a random example question">
+                            <span class="dice-icon" aria-hidden="true">&#127922;</span>
+                            <span class="example-text" id="exampleText">Need inspiration? Tap for a random prompt.</span>
+                        </div>
+                        <div class="char-counter" id="charCounter">0/250</div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button type="submit" class="submit-btn" id="submitBtn">Send anonymously</button>
+                    <div class="loading-message" id="loading" style="display:none;">Sending...</div>
+                </div>
+
+                <div class="status-message">
+                    <div class="success-message" id="successMessage" style="display:none;">Your question was sent anonymously.</div>
+                    <div class="error-message" id="errorMessage" style="display:none;">Unable to send question right now. Please try again.</div>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-nav-small">
+                <a href="/safety.html">Safety & Policies</a>
+                <span>•</span>
+                <a href="/index.html">About</a>
             </div>
-                        <div class="profile-loading" id="profileLoading" style="display:none; text-align:center; margin-bottom:10px; color:#888;">Loading profile…</div>
-                        <div class="card-body">
-                                <!-- Custom question banner (shown when a custom question link is used) -->
-                                <div id="customQuestionBanner" class="custom-question-banner">
-                                        <div class="custom-question-label">💬 Custom Question</div>
-                                        <div id="customQuestionText" class="custom-question-text">Example custom question text</div>
-                                </div>
+            <div class="store-links">
+                <a href="https://play.google.com/store/apps/details?id=com.jlio.app&pcampaignid=web_share" target="_blank" rel="noopener" class="store-btn">
+                    <img src="/assets/images/play-store-badge.png" alt="Get it on Google Play" class="store-icon">
+                </a>
+                <a href="https://apps.apple.com/us/app/jlio/id6756235507" target="_blank" rel="noopener" class="store-btn">
+                    <img src="/assets/images/app-store-badge.png" alt="Download on the App Store" class="store-icon">
+                </a>
+            </div>
+        </div>
+    </footer>
 
-                                <textarea class="dark-textbox" id="questionText" name="questionText" placeholder="tap to reply…" maxlength="250" required></textarea>
-                                <div class="char-counter" id="charCounter">0/250</div>
-                        </div>
-                        <div class="card-footer">
-                                <div class="example-question" id="exampleQuestion" tabindex="0" role="button" aria-label="Get a random example question">
-                                        <span class="dice-icon">🎲</span>
-                                        <span class="example-text" id="exampleText">Try: "What's your favorite memory?"</span>
-                                </div>
-                                <button type="submit" class="submit-btn" id="submitBtn">Send</button>
-                        </div>
-                        <div class="status-message">
-                                <div class="success-message" id="successMessage" style="display:none;">✅ Your question was sent anonymously!</div>
-                                <div class="error-message" id="errorMessage" style="display:none;">❌ Something went wrong. Please try again.</div>
-                        </div>
-                </form>
-                </div>
-
-                <!-- Footer: App Download Encouragement -->
-                <footer class="footer">
-                        <div class="footer-content">
-                                <div class="footer-nav-small">
-                                        <a href="/safety.html">Safety & Policies</a>
-                                        <span>•</span>
-                                        <a href="/index.html">About</a>
-                                </div>
-                                <div class="store-links">
-                                        <a href="https://play.google.com/store/apps/details?id=com.jlio.app&pcampaignid=web_share" target="_blank" rel="noopener" class="store-btn">
-                                                <img src="/assets/images/play-store-badge.png" alt="Get it on Google Play" class="store-icon" />
-                                        </a>
-                                        <a href="https://apps.apple.com/us/app/jlio/id6756235507" target="_blank" rel="noopener" class="store-btn">
-                                                <img src="/assets/images/app-store-badge.png" alt="Download on the App Store" class="store-icon" />
-                                        </a>
-                                </div>
-                        </div>
-                </footer>
-
-        <script type="module" src="/assets/script.js"></script>
+    <script type="module" src="/assets/script.js"></script>
 </body>
 </html>
