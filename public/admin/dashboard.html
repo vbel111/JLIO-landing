@@ -130,6 +130,10 @@
                         <option value="all">All Tags</option>
                         <!-- Tags will be populated dynamically -->
                     </select>
+                    <select id="countryFilter">
+                        <option value="all">All Countries</option>
+                        <!-- Countries will be populated dynamically -->
+                    </select>
                     <select id="sortFilter">
                         <option value="recent">Most Recent</option>
                         <option value="oldest">Oldest First</option>
@@ -154,12 +158,54 @@
                     <div class="stat-label">Global Stories</div>
                 </div>
                 <div class="stat-card small">
+                    <div class="stat-value" id="localStoriesCount">0</div>
+                    <div class="stat-label">Local Stories</div>
+                </div>
+                <div class="stat-card small">
                     <div class="stat-value" id="todayStoriesCount">0</div>
                     <div class="stat-label">Today</div>
                 </div>
                 <div class="stat-card small">
                     <div class="stat-value" id="repliesCount">0</div>
                     <div class="stat-label">Total Replies</div>
+                </div>
+                <div class="stat-card small">
+                    <div class="stat-value" id="countriesCount">0</div>
+                    <div class="stat-label">Countries</div>
+                </div>
+            </div>
+
+            <!-- Categorization View -->
+            <div class="categorization-section">
+                <div class="categorization-header">
+                    <h3>📊 Stories by Categories</h3>
+                    <button class="toggle-btn" onclick="toggleCategorization()">▼ Toggle</button>
+                </div>
+
+                <div class="categorization-content" id="categorizationContent">
+                    <!-- Scope Breakdown -->
+                    <div class="category-box">
+                        <h4>🌐 By Scope</h4>
+                        <div class="category-list" id="scopeBreakdown">
+                            <div class="loading-placeholder">Loading scope data...</div>
+                        </div>
+                    </div>
+
+                    <!-- Tags Breakdown -->
+                    <div class="category-box">
+                        <h4>#️⃣ Top Tags</h4>
+                        <div class="category-list" id="tagsBreakdown">
+                            <div class="loading-placeholder">Loading tags data...</div>
+                        </div>
+                    </div>
+
+                    <!-- Countries Breakdown -->
+                    <div class="category-box">
+                        <h4>🌍 By Country</h4>
+                        <div class="category-list" id="countriesBreakdown">
+                            <div class="loading-placeholder">Loading countries data...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

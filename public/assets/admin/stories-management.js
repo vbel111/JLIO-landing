@@ -42,6 +42,7 @@ const storiesState = {
         search: '',
         community: 'all',
         tag: 'all',
+        country: 'all',
         sort: 'recent'
     }
 };
@@ -74,6 +75,94 @@ function formatTimeAgo(date) {
 }
 
 /**
+ * Normalize story scope across legacy and current schema
+ */
+function getStoryScope(story) {
+    const rawScope = (story.scope || story.community || '').toString().trim().toLowerCase();
+    if (rawScope === 'global' || rawScope === 'local') {
+        return rawScope;
+    }
+    return 'local';
+}
+
+const countryNameFormatter =
+    typeof Intl !== 'undefined' && typeof Intl.DisplayNames === 'function'
+        ? new Intl.DisplayNames(['en'], { type: 'region' })
+        : null;
+
+function getCountryNameFromCode(code) {
+    if (!countryNameFormatter || !code) {
+        return code;
+    }
+
+    try {
+        return countryNameFormatter.of(code) || code;
+    } catch {
+        return code;
+    }
+}
+
+/**
+ * Resolve a stable country key + label from mixed story schemas
+ */
+function getStoryCountryInfo(story) {
+    const rawValues = [story.countryCode, story.country, story.userCountry]
+        .map(value => typeof value === 'string' ? value.trim() : '')
+        .filter(Boolean);
+
+    let countryCode = '';
+    let countryName = typeof story.countryName === 'string' ? story.countryName.trim() : '';
+
+    rawValues.forEach(value => {
+        if (!countryCode && /^[a-z]{2,3}$/i.test(value)) {
+            countryCode = value.toUpperCase();
+            return;
+        }
+
+        if (!countryName) {
+            countryName = value;
+        }
+    });
+
+    if (countryCode && countryName && countryName.toUpperCase() !== countryCode) {
+        return {
+            key: countryCode,
+            label: `${countryName} (${countryCode})`
+        };
+    }
+
+    if (countryCode) {
+        const countryNameFromCode = getCountryNameFromCode(countryCode);
+        return {
+            key: countryCode,
+            label: countryNameFromCode && countryNameFromCode !== countryCode
+                ? `${countryNameFromCode} (${countryCode})`
+                : countryCode
+        };
+    }
+
+    if (countryName) {
+        return { key: countryName, label: countryName };
+    }
+
+    return { key: 'Unknown', label: 'Unknown' };
+}
+
+/**
+ * Add normalized admin-only fields used by filters and breakdowns
+ */
+function normalizeStoryForAdmin(rawStory) {
+    const countryInfo = getStoryCountryInfo(rawStory);
+
+    return {
+        ...rawStory,
+        adminScope: getStoryScope(rawStory),
+        adminCountryKey: countryInfo.key,
+        adminCountryLabel: countryInfo.label
+    };
+}
+
+/**
  * Load and display stories
  */
 window.loadStoriesData = async function () {
@@ -85,9 +174,10 @@ window.loadStoriesData = async function () {
 
         storiesState.allStories = [];
         storiesSnapshot.forEach(doc => {
+            const storyData = normalizeStoryForAdmin(doc.data());
             storiesState.allStories.push({
                 id: doc.id,
-                ...doc.data()
+                ...storyData
             });
         });
 
@@ -98,6 +188,9 @@ window.loadStoriesData = async function () {
 
         // Populate tag filter
         populateTagFilter();
+
+        // Populate country filter
+        populateCountryFilter();
 
         // Apply filters and display
         applyStoriesFilters();
@@ -121,7 +214,8 @@ window.loadStoriesData = async function () {
  */
 function updateStoriesStats() {
     const totalStories = storiesState.allStories.length;
-    const globalStories = storiesState.allStories.filter(s => s.community === 'global').length;
+    const globalStories = storiesState.allStories.filter(s => s.adminScope === 'global').length;
+    const localStories = storiesState.allStories.filter(s => s.adminScope === 'local').length;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -133,10 +227,23 @@ function updateStoriesStats() {
 
     const totalReplies = storiesState.allStories.reduce((sum, s) => sum + (s.replyCount || 0), 0);
 
+    // Get unique countries
+    const countries = new Set();
+    storiesState.allStories.forEach(story => {
+        if (story.adminCountryKey && story.adminCountryKey !== 'Unknown') {
+            countries.add(story.adminCountryKey);
+        }
+    });
+
     document.getElementById('totalStoriesCount').textContent = totalStories;
     document.getElementById('globalStoriesCount').textContent = globalStories;
+    document.getElementById('localStoriesCount').textContent = localStories;
     document.getElementById('todayStoriesCount').textContent = todayStories;
     document.getElementById('repliesCount').textContent = totalReplies;
+    document.getElementById('countriesCount').textContent = countries.size;
+
+    // Update categorization
+    updateCategorization();
 }
 
 /**
@@ -171,6 +278,209 @@ function populateTagFilter() {
 }
 
 /**
+ * Populate country filter dropdown with unique countries
+ */
+function populateCountryFilter() {
+    const countries = new Map();
+    storiesState.allStories.forEach(story => {
+        if (story.adminCountryKey && story.adminCountryKey !== 'Unknown') {
+            if (!countries.has(story.adminCountryKey)) {
+                countries.set(story.adminCountryKey, story.adminCountryLabel || story.adminCountryKey);
+            }
+        }
+    });
+
+    const countryFilter = document.getElementById('countryFilter');
+    const currentValue = countryFilter.value;
+
+    // Clear existing options except "All Countries"
+    countryFilter.innerHTML = '<option value="all">All Countries</option>';
+
+    // Add countries with country codes/names
+    Array.from(countries.entries())
+        .sort((a, b) => a[1].localeCompare(b[1]))
+        .forEach(([countryKey, countryLabel]) => {
+        const option = document.createElement('option');
+        option.value = countryKey;
+        option.textContent = `${countryLabel}`;
+        countryFilter.appendChild(option);
+    });
+
+    // Restore previous selection if it still exists
+    if (currentValue !== 'all' && countries.has(currentValue)) {
+        countryFilter.value = currentValue;
+    }
+}
+
+/**
+ * Update categorization breakdown
+ */
+function updateCategorization() {
+    updateScopeBreakdown();
+    updateTagsBreakdown();
+    updateCountriesBreakdown();
+}
+
+/**
+ * Update scope breakdown
+ */
+function updateScopeBreakdown() {
+    const scopeBreakdown = document.getElementById('scopeBreakdown');
+    const scopes = {};
+
+    storiesState.allStories.forEach(story => {
+        const scope = story.adminScope === 'global' ? 'Global' : 'Local';
+        scopes[scope] = (scopes[scope] || 0) + 1;
+    });
+
+    if (Object.keys(scopes).length === 0) {
+        scopeBreakdown.innerHTML = '<div class="empty-state-small">No scope data available</div>';
+        return;
+    }
+
+    const total = storiesState.allStories.length;
+    scopeBreakdown.innerHTML = Object.entries(scopes).map(([scope, count]) => {
+        const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+        const emoji = scope === 'Global' ? '🌍' : '📍';
+        return `
+            <div class="category-item" onclick="filterByScope('${scope.toLowerCase()}')">
+                <div class="category-item-header">
+                    <span class="category-name">${emoji} ${scope}</span>
+                    <span class="category-count">${count}</span>
+                </div>
+                <div class="category-bar">
+                    <div class="category-fill" style="width: ${percentage}%"></div>
+                </div>
+                <div class="category-percentage">${percentage}%</div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Update tags breakdown
+ */
+function updateTagsBreakdown() {
+    const tagsBreakdown = document.getElementById('tagsBreakdown');
+    const tags = {};
+
+    storiesState.allStories.forEach(story => {
+        if (story.tags && Array.isArray(story.tags)) {
+            story.tags.forEach(tag => {
+                tags[tag] = (tags[tag] || 0) + 1;
+            });
+        }
+    });
+
+    if (Object.keys(tags).length === 0) {
+        tagsBreakdown.innerHTML = '<div class="empty-state-small">No tags available</div>';
+        return;
+    }
+
+    const total = storiesState.allStories.length;
+    const topTags = Object.entries(tags)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 15); // Show top 15 tags
+
+    tagsBreakdown.innerHTML = topTags.map(([tag, count]) => {
+        const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+        return `
+            <div class="category-item" onclick="filterByTag('${tag}')">
+                <div class="category-item-header">
+                    <span class="category-name">#${tag}</span>
+                    <span class="category-count">${count}</span>
+                </div>
+                <div class="category-bar">
+                    <div class="category-fill" style="width: ${percentage}%"></div>
+                </div>
+                <div class="category-percentage">${percentage}%</div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Update countries breakdown
+ */
+function updateCountriesBreakdown() {
+    const countriesBreakdown = document.getElementById('countriesBreakdown');
+    const countries = {};
+
+    storiesState.allStories.forEach(story => {
+        const countryKey = story.adminCountryKey || 'Unknown';
+        if (!countries[countryKey]) {
+            countries[countryKey] = {
+                label: story.adminCountryLabel || countryKey,
+                count: 0
+            };
+        }
+        countries[countryKey].count += 1;
+    });
+
+    if (Object.keys(countries).length === 0) {
+        countriesBreakdown.innerHTML = '<div class="empty-state-small">No country data available</div>';
+        return;
+    }
+
+    const total = storiesState.allStories.length;
+    const topCountries = Object.entries(countries)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 20); // Show top 20 countries
+
+    countriesBreakdown.innerHTML = topCountries.map(([countryKey, data]) => {
+        const percentage = total > 0 ? Math.round((data.count / total) * 100) : 0;
+        const encodedCountry = encodeURIComponent(countryKey);
+        return `
+            <div class="category-item" onclick="filterByCountry(decodeURIComponent('${encodedCountry}'))">
+                <div class="category-item-header">
+                    <span class="category-name">🌐 ${data.label}</span>
+                    <span class="category-count">${data.count}</span>
+                </div>
+                <div class="category-bar">
+                    <div class="category-fill" style="width: ${percentage}%"></div>
+                </div>
+                <div class="category-percentage">${percentage}%</div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Filter stories by scope
+ */
+window.filterByScope = function (scope) {
+    document.getElementById('communityFilter').value = scope;
+    storiesState.filters.community = scope;
+    applyStoriesFilters();
+};
+
+/**
+ * Filter stories by tag
+ */
+window.filterByTag = function (tag) {
+    document.getElementById('tagFilter').value = tag;
+    storiesState.filters.tag = tag;
+    applyStoriesFilters();
+};
+
+/**
+ * Filter stories by country
+ */
+window.filterByCountry = function (country) {
+    document.getElementById('countryFilter').value = country;
+    storiesState.filters.country = country;
+    applyStoriesFilters();
+};
+
+/**
+ * Toggle categorization section
+ */
+window.toggleCategorization = function () {
+    const content = document.getElementById('categorizationContent');
+    content.style.display = content.style.display === 'none' ? 'grid' : 'none';
+}
+
+/**
  * Apply filters to stories
  */
 function applyStoriesFilters() {
@@ -187,7 +497,7 @@ function applyStoriesFilters() {
     // Community filter
     if (storiesState.filters.community !== 'all') {
         filtered = filtered.filter(story =>
-            story.community === storiesState.filters.community
+            story.adminScope === storiesState.filters.community
         );
     }
 
@@ -195,6 +505,13 @@ function applyStoriesFilters() {
     if (storiesState.filters.tag !== 'all') {
         filtered = filtered.filter(story =>
             story.tags && story.tags.includes(storiesState.filters.tag)
+        );
+    }
+
+    // Country filter
+    if (storiesState.filters.country !== 'all') {
+        filtered = filtered.filter(story =>
+            story.adminCountryKey === storiesState.filters.country
         );
     }
 
@@ -253,7 +570,7 @@ function displayStories() {
 function createStoryCard(story) {
     const isSelected = storiesState.selectedStories.has(story.id);
     const createdDate = story.createdAt?.toDate();
-    const communityBadge = story.community === 'global' ? '🌍 Global' : '📍 Local';
+    const communityBadge = story.adminScope === 'global' ? '🌍 Global' : '📍 Local';
 
     return `
     <div class="story-item ${isSelected ? 'selected' : ''}" data-story-id="${story.id}">
@@ -518,8 +835,8 @@ window.openStoryModal = async function (storyId) {
               <span class="meta-value">${story.authorId || 'Unknown'}</span>
             </div>
             <div class="meta-item">
-              <span class="meta-label">Community</span>
-              <span class="meta-value">${story.community === 'global' ? '🌍 Global' : '📍 Local'}</span>
+                            <span class="meta-label">Scope</span>
+                            <span class="meta-value">${story.adminScope === 'global' ? '🌍 Global' : '📍 Local'}</span>
             </div>
             <div class="meta-item">
               <span class="meta-label">Created</span>
@@ -607,6 +924,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tagFilter) {
         tagFilter.addEventListener('change', (e) => {
             storiesState.filters.tag = e.target.value;
+            applyStoriesFilters();
+        });
+    }
+
+    // Country filter
+    const countryFilter = document.getElementById('countryFilter');
+    if (countryFilter) {
+        countryFilter.addEventListener('change', (e) => {
+            storiesState.filters.country = e.target.value;
             applyStoriesFilters();
         });
     }
