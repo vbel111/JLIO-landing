@@ -32,7 +32,7 @@ onAuthStateChanged(auth, async (user) => {
     // Check if user has admin role
     const isAdmin = await checkAdminRole(user.uid);
     if (isAdmin) {
-      window.location.href = './dashboard.html';
+      window.location.href = './dashboard-new.html';
     } else {
       // Sign out non-admin users
       await signOut(auth);

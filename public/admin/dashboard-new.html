@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JLIO Admin Dashboard - Analytics & Moderation</title>
+    <link rel="icon" type="image/png" href="../assets/images/jlioLogo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+NZ:wght@100..400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/admin/dashboard-new.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+</head>
+<body class="admin-dashboard">
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-header">
+            <img src="../assets/images/jlioLogo.png" alt="JLIO" class="sidebar-logo">
+            <h1>JLIO Admin</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item active" data-page="overview">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Overview</span>
+            </button>
+            <button class="nav-item" data-page="analytics">
+                <span class="nav-icon">📈</span>
+                <span class="nav-label">Analytics</span>
+            </button>
+            <button class="nav-item" data-page="users">
+                <span class="nav-icon">👥</span>
+                <span class="nav-label">Users</span>
+            </button>
+            <button class="nav-item" data-page="content">
+                <span class="nav-icon">📝</span>
+                <span class="nav-label">Content</span>
+            </button>
+            <button class="nav-item" data-page="moderation">
+                <span class="nav-icon">🛡️</span>
+                <span class="nav-label">Moderation</span>
+            </button>
+            <button class="nav-item" data-page="messaging">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Messaging</span>
+            </button>
+            <button class="nav-item" data-page="reports">
+                <span class="nav-icon">🚨</span>
+                <span class="nav-label">Reports</span>
+            </button>
+            <button class="nav-item" data-page="system">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">System</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">👤</div>
+                <div class="user-details">
+                    <div class="user-name" id="adminName">Admin</div>
+                    <div class="user-email" id="adminEmail">Loading...</div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="admin-main">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-title">
+                <h2 id="pageTitle">Dashboard Overview</h2>
+                <p id="pageDescription">Real-time analytics and app management</p>
+            </div>
+
+            <div class="header-controls">
+                <div class="time-range-selector">
+                    <select id="timeRange" class="time-select">
+                        <option value="24h">Last 24 Hours</option>
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d" selected>Last 30 Days</option>
+                        <option value="90d">Last 90 Days</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+                <button class="refresh-btn" id="refreshBtn" title="Refresh data">🔄</button>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Live</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content Container -->
+        <div class="page-container">
+            <!-- Overview Page -->
+            <div class="admin-page active" id="overview-page">
+                <div class="overview-metrics">
+                    <div class="metric-card metric-primary">
+                        <div class="metric-icon">👥</div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="metricTotalUsers">0</div>
+                            <div class="metric-label">Total Users</div>
+                            <div class="metric-change" id="metricUsersChange">+0 today</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card metric-secondary">
+                        <div class="metric-icon">📝</div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="metricTotalContent">0</div>
+                            <div class="metric-label">Total Content</div>
+                            <div class="metric-change" id="metricContentChange">+0 today</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card metric-tertiary">
+                        <div class="metric-icon">💬</div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="metricActivePairs">0</div>
+                            <div class="metric-label">Active Pairs</div>
+                            <div class="metric-change" id="metricPairsChange">Realtime</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card metric-warning">
+                        <div class="metric-icon">🚨</div>
+                        <div class="metric-content">
+                            <div class="metric-value" id="metricPendingReports">0</div>
+                            <div class="metric-label">Pending Reports</div>
+                            <div class="metric-change urgent" id="metricReportsChange">Action needed</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overview-grid">
+                    <div class="overview-card wide">
+                        <h3>User Growth (Last 30 Days)</h3>
+                        <canvas id="userGrowthChart"></canvas>
+                    </div>
+
+                    <div class="overview-card">
+                        <h3>Content Distribution</h3>
+                        <canvas id="contentDistributionChart"></canvas>
+                    </div>
+
+                    <div class="overview-card">
+                        <h3>Engagement Rate</h3>
+                        <canvas id="engagementChart"></canvas>
+                    </div>
+
+                    <div class="overview-card wide">
+                        <h3>Recent Activity</h3>
+                        <div class="activity-feed" id="activityFeed">
+                            <div class="activity-placeholder">Loading recent activity...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Page -->
+            <div class="admin-page" id="analytics-page">
+                <div class="analytics-grid">
+                    <div class="analytics-section">
+                        <h3>User Engagement</h3>
+                        <div class="stats-table">
+                            <div class="stat-row">
+                                <span class="stat-label">Daily Active Users</span>
+                                <span class="stat-value" id="statDAU">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Monthly Active Users</span>
+                                <span class="stat-value" id="statMAU">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Avg Session Duration</span>
+                                <span class="stat-value" id="statSessionDuration">0m</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Return Rate</span>
+                                <span class="stat-value" id="statReturnRate">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-section">
+                        <h3>Content Metrics</h3>
+                        <div class="stats-table">
+                            <div class="stat-row">
+                                <span class="stat-label">Total Stories</span>
+                                <span class="stat-value" id="statTotalStories">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Total Gists</span>
+                                <span class="stat-value" id="statTotalGists">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Total Questions</span>
+                                <span class="stat-value" id="statTotalQuestions">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Avg Engagement Per Post</span>
+                                <span class="stat-value" id="statAvgEngagement">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-section">
+                        <h3>Pair Metrics</h3>
+                        <div class="stats-table">
+                            <div class="stat-row">
+                                <span class="stat-label">Total Pairs</span>
+                                <span class="stat-value" id="statTotalPairs">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Avg Pair Duration</span>
+                                <span class="stat-value" id="statAvgPairDuration">0m</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Messages Exchanged</span>
+                                <span class="stat-value" id="statTotalMessages">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Completion Rate</span>
+                                <span class="stat-value" id="statCompletionRate">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-section">
+                        <h3>Health Metrics</h3>
+                        <div class="stats-table">
+                            <div class="stat-row">
+                                <span class="stat-label">API Latency</span>
+                                <span class="stat-value" id="statLatency">0ms</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Error Rate</span>
+                                <span class="stat-value" id="statErrorRate">0%</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Active Sessions</span>
+                                <span class="stat-value" id="statActiveSessions">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Server Health</span>
+                                <span class="stat-value status-good" id="statServerHealth">Good</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-chart wide">
+                        <h3>Daily Statistics (Last 30 Days)</h3>
+                        <canvas id="dailyStatsChart"></canvas>
+                    </div>
+
+                    <div class="analytics-chart wide">
+                        <h3>User Retention</h3>
+                        <canvas id="retentionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Page -->
+            <div class="admin-page" id="users-page">
+                <div class="users-controls">
+                    <div class="search-bar">
+                        <input type="text" id="userSearch" placeholder="Search by email or username..." class="search-input">
+                        <button class="search-btn">🔍</button>
+                    </div>
+                    <div class="filter-bar">
+                        <select id="userFilter" class="filter-select">
+                            <option value="all">All Users</option>
+                            <option value="active">Active Today</option>
+                            <option value="verified">Verified</option>
+                            <option value="flagged">Flagged</option>
+                            <option value="banned">Banned</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="users-table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Email</th>
+                                <th>Joined</th>
+                                <th>Last Active</th>
+                                <th>Content</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr class="loading-row">
+                                <td colspan="7">Loading users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Content Page -->
+            <div class="admin-page" id="content-page">
+                <div class="content-filters">
+                    <button class="filter-btn active" data-filter="all">All Content</button>
+                    <button class="filter-btn" data-filter="stories">Stories</button>
+                    <button class="filter-btn" data-filter="gists">Gists</button>
+                    <button class="filter-btn" data-filter="questions">Questions</button>
+                    <button class="filter-btn" data-filter="responses">Responses</button>
+                </div>
+
+                <div class="content-grid" id="contentGrid">
+                    <div class="content-placeholder">Loading content...</div>
+                </div>
+            </div>
+
+            <!-- Moderation Page -->
+            <div class="admin-page" id="moderation-page">
+                <div class="moderation-controls">
+                    <div class="status-filter">
+                        <button class="status-btn active" data-status="pending">Pending</button>
+                        <button class="status-btn" data-status="reviewed">Reviewed</button>
+                        <button class="status-btn" data-status="approved">Approved</button>
+                        <button class="status-btn" data-status="rejected">Rejected</button>
+                    </div>
+                </div>
+
+                <div class="moderation-queue" id="moderationQueue">
+                    <div class="queue-placeholder">Loading flagged content...</div>
+                </div>
+            </div>
+
+            <!-- Messaging Page -->
+            <div class="admin-page" id="messaging-page">
+                <div class="messaging-grid">
+                    <div class="messaging-stats">
+                        <h3>Message Statistics</h3>
+                        <div class="stats-table">
+                            <div class="stat-row">
+                                <span class="stat-label">Total Messages Sent</span>
+                                <span class="stat-value" id="msgStatTotal">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Active Conversations</span>
+                                <span class="stat-value" id="msgStatActive">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Avg Response Time</span>
+                                <span class="stat-value" id="msgStatResponseTime">0s</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Messages Today</span>
+                                <span class="stat-value" id="msgStatToday">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="messaging-chart">
+                        <h3>Message Volume (Last 7 Days)</h3>
+                        <canvas id="messageVolumeChart"></canvas>
+                    </div>
+
+                    <div class="active-conversations wide">
+                        <h3>Active Conversations</h3>
+                        <div class="conversations-list" id="conversationsList">
+                            <div class="placeholder">Loading conversations...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div class="admin-page" id="reports-page">
+                <div class="reports-header">
+                    <h3>User Reports & Flags</h3>
+                    <div class="reports-summary">
+                        <span class="summary-item">Total: <strong id="reportTotal">0</strong></span>
+                        <span class="summary-item">Pending: <strong id="reportPending">0</strong></span>
+                        <span class="summary-item">Resolved: <strong id="reportResolved">0</strong></span>
+                    </div>
+                </div>
+
+                <div class="reports-list" id="reportsList">
+                    <div class="placeholder">Loading reports...</div>
+                </div>
+            </div>
+
+            <!-- System Page -->
+            <div class="admin-page" id="system-page">
+                <div class="system-grid">
+                    <div class="system-card">
+                        <h3>Firebase Status</h3>
+                        <div class="status-indicator status-good">Connected</div>
+                        <p class="status-details">Project: jlio-de9c4</p>
+                        <p class="status-details">Region: us-central1</p>
+                    </div>
+
+                    <div class="system-card">
+                        <h3>Database Size</h3>
+                        <div class="size-bar">
+                            <div class="size-used" style="width: 65%;"></div>
+                        </div>
+                        <p class="size-text">65% of quota used</p>
+                    </div>
+
+                    <div class="system-card">
+                        <h3>Recent Operations</h3>
+                        <div class="operations-log" id="operationsLog">
+                            <div class="operation-item">Admin dashboard initialized</div>
+                        </div>
+                    </div>
+
+                    <div class="system-card">
+                        <h3>Admin Actions</h3>
+                        <button class="action-btn danger">Ban User</button>
+                        <button class="action-btn danger">Delete Content</button>
+                        <button class="action-btn warning">Send Announcement</button>
+                        <button class="action-btn secondary">Export Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>User Details</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="userModalBody">
+                Loading...
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="../assets/admin/auth.js"></script>
+    <script type="module" src="../assets/admin/dashboard-v2.js"></script>
+</body>
+</html>
